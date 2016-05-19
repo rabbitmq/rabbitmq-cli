@@ -79,6 +79,20 @@ defmodule TestHelper do
     :rpc.call(get_rabbit_hostname, :rabbit_auth_backend_internal, :set_permissions, [user, vhost, conf, write, read])
   end
 
+  def declare_queue(name, vhost, durable \\ false, auto_delete \\ false, args \\ [], owner \\ :none) do
+    queue_name = :rabbit_misc.r(vhost, :queue, name)
+    :rpc.call(get_rabbit_hostname,
+              :rabbit_amqqueue, :declare,
+              [queue_name, durable, auto_delete, args, owner])
+  end
+
+  def declare_exchange(name, vhost, type \\ :direct, durable \\ false, auto_delete \\ false, internal \\ false, args \\ []) do
+    exchange_name = :rabbit_misc.r(vhost, :exchange, name)
+    :rpc.call(get_rabbit_hostname,
+              :rabbit_exchange, :declare,
+              [exchange_name, type, durable, auto_delete, internal, args])
+  end
+
   def list_permissions(vhost) do
     :rpc.call(
       get_rabbit_hostname,
@@ -100,4 +114,34 @@ defmodule TestHelper do
   def error_check(cmd_line, code) do
     assert catch_exit(RabbitMQCtl.main(cmd_line)) == {:shutdown, code}
   end
+
+  def with_channel(vhost, fun) do
+    with_connection(vhost,
+      fn(conn) ->
+        {:ok, chan} = AMQP.Channel.open(conn)
+        fun.(chan)
+      end)
+  end
+
+  def with_connection(vhost, fun) do
+    {:ok, conn} = AMQP.Connection.open(virtual_host: vhost)
+    ExUnit.Callbacks.on_exit(fn ->
+      try do
+        AMQP.Connection.close(conn)
+      catch
+        :exit, _ -> :ok
+      end
+    end)
+    fun.(conn)
+    AMQP.Connection.close(conn)
+  end
+
+  def emit_list(list, ref, pid) do
+    emit_list_map(list, &(&1), ref, pid)
+  end
+
+  def emit_list_map(list, fun, ref, pid) do
+    :rabbit_control_misc.emitting_map(pid, ref, fun, list)
+  end
+
 end
