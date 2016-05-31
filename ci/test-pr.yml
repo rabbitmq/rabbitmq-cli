@@ -1,0 +1,21 @@
+---
+platform: linux
+inputs:
+- name: rabbitmq-codegen-master
+  path: rabbitmq_codegen
+- name: rabbitmq-cli-pr
+  path: rabbitmq_cli
+- name: rabbitmq-common-master
+  path: rabbit_common
+- name: rabbitmq-federation-master
+  path: rabbitmq_federation
+- name: rabbitmq-management-master
+  path: rabbitmq_management
+- name: rabbitmq-server-master
+  path: rabbit
+image_resource:
+  type: docker-image
+  source:
+    repository: pivotalrabbitmq/ci
+run:
+  path: rabbitmq_cli/ci/test.sh
