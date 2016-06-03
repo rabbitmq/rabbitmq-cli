@@ -47,24 +47,45 @@ defmodule RabbitMQCtl.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [
-      {
-        :rabbit_common,
-        git: "https://github.com/rabbitmq/rabbitmq-common.git",
-        branch: "master"
-      },
-      {
-        :amqp_client,
-        git: "https://github.com/rabbitmq/rabbitmq-erlang-client.git",
-        branch: "master",
-        override: true
-      },
-      {
-        :amqp,
-        git: "https://github.com/pma/amqp.git",
-        branch: "master"
-      }
-    ]
+    if Mix.env == :test do
+      [
+        {
+          :rabbit_common,
+          path: "../rabbit_common",
+          override: true
+        },
+        {
+          :amqp_client,
+          git: "https://github.com/rabbitmq/rabbitmq-erlang-client.git",
+          branch: "master",
+          override: true
+        },
+        {
+          :amqp,
+          git: "https://github.com/pma/amqp.git",
+          branch: "master"
+        }
+      ]
+    else
+      [
+        {
+          :rabbit_common,
+          git: "https://github.com/rabbitmq/rabbitmq-common.git",
+          branch: "master"
+        },
+        {
+          :amqp_client,
+          git: "https://github.com/rabbitmq/rabbitmq-erlang-client.git",
+          branch: "master",
+          override: true
+        },
+        {
+          :amqp,
+          git: "https://github.com/pma/amqp.git",
+          branch: "master"
+        }
+      ]
+    end
   end
 
   defp escript_config do
