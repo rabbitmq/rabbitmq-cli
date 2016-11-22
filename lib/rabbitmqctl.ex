@@ -41,7 +41,7 @@ defmodule RabbitMQCtl do
         {:error, ExitCodes.exit_usage, HelpCommand.all_usage()};
       {command_name, command, arguments} ->
         case Parser.parse_command_specific(command, unparsed_command) do
-          {^parsed_cmd, _, [_|_] = invalid} ->
+          {_, _, [_|_] = invalid} ->
             validation_error({:bad_option, invalid}, command_name, unparsed_command);
           {^parsed_cmd, command_options, []} ->
             ## Merge normalized global options
