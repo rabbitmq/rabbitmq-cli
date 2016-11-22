@@ -32,21 +32,26 @@ defmodule RabbitMQCtl do
     auto_complete(str)
   end
   def main(unparsed_command) do
-    {parsed_cmd, parsed_options, _} = Parser.parse_global(unparsed_command)
+    # we cannot depend on positional arguments being correct here
+    # because Parser.parse_global/1 is unaware of command-specific switches. MK.
+    {_parsed_positional_args, parsed_options, _} = Parser.parse_global(unparsed_command)
     global_options = parsed_options |> merge_all_defaults |> normalize_options
     CommandModules.load(global_options)
 
-    case get_command_and_arguments(parsed_cmd) do
+    case extract_command_name(unparsed_command) do
       :no_command ->
         {:error, ExitCodes.exit_usage, HelpCommand.all_usage()};
-      {command_name, command, arguments} ->
+      {command_name, command} ->
         case Parser.parse_command_specific(command, unparsed_command) do
           {_, _, [_|_] = invalid} ->
             validation_error({:bad_option, invalid}, command_name, unparsed_command);
-          {_, command_options, []} ->
-            ## Merge normalized global options
+          {positional_args, command_options, []} ->
+            # positional arguments also include command name, shift it. MK.
+            [_command_name | arguments] = positional_args
+            # merge normalized global options
             options = Map.merge(command_options, global_options)
             Distribution.start(options)
+
             case execute_command(command, arguments, options) do
               {:error, _, _} = err ->
                 err;
@@ -65,13 +70,13 @@ defmodule RabbitMQCtl do
     |> handle_shutdown
   end
 
-  defp get_command_and_arguments([]) do
+  defp extract_command_name([]) do
     :no_command
   end
-  defp get_command_and_arguments([command_name | arguments]) do
+  defp extract_command_name([command_name | _]) do
     case CommandModules.module_map[command_name] do
       nil                           -> :no_command;
-      command when is_atom(command) -> {command_name, command, arguments}
+      command when is_atom(command) -> {command_name, command}
     end
   end
 
