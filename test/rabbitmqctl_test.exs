@@ -113,17 +113,17 @@ defmodule RabbitMQCtlTest do
     command1 = ["--invalid=true", "list_permissions", "-p", "/"]
     assert capture_io(:stderr, fn ->
       error_check(command1, exit_usage)
-    end) =~ ~r/Error: Invalid options for this command/
+    end) =~ ~r/Usage/
 
     command2 = ["--node", "rabbit", "status", "quack"]
     assert capture_io(:stderr, fn ->
       error_check(command2, exit_usage)
-    end) =~ ~r/Error: too many arguments./
+    end) =~ ~r/Usage/
 
     command3 = ["--node", "rabbit", "add_user", "quack"]
     assert capture_io(:stderr, fn ->
       error_check(command3, exit_usage)
-    end) =~ ~r/Error: not enough arguments./
+    end) =~ ~r/Usage/
   end
 
 ## ------------------------- Default Flags ------------------------------------
