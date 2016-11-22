@@ -43,7 +43,7 @@ defmodule RabbitMQCtl do
         case Parser.parse_command_specific(command, unparsed_command) do
           {_, _, [_|_] = invalid} ->
             validation_error({:bad_option, invalid}, command_name, unparsed_command);
-          {^parsed_cmd, command_options, []} ->
+          {_, command_options, []} ->
             ## Merge normalized global options
             options = Map.merge(command_options, global_options)
             Distribution.start(options)
