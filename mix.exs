@@ -28,7 +28,12 @@ defmodule RabbitMQCtl.MixfileBase do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       escript: [main_module: RabbitMQCtl,
-                emu_args: "-hidden",
+                emu_args: " -hidden +W w +K true +A 64 +P 1048576 +t 5000000 " <>
+                          " +stbt db +zdbbl 32000 -sasl errlog_type error " <>
+                          # " -kernel inet_default_connect_options \"[{nodelay,true}]\" "<>
+                          " -os_mon start_cpu_sup false "<>
+                          " -os_mon start_disksup false "<>
+                          " -os_mon start_memsup false ",
                 path: "escript/rabbitmqctl"],
       deps_path: deps_dir,
       deps: deps(deps_dir),
