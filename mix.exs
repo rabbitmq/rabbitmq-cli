@@ -40,7 +40,8 @@ defmodule RabbitMQCtl.MixfileBase do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger],
+    [description: 'rabbitmqctl ' ++ to_charlist(Mix.env),
+     applications: [:logger],
      env: [scopes: ['rabbitmq-plugins': :plugins,
                     rabbitmqctl: :ctl,
                     'rabbitmq-diagnostics': :diagnostics]]
@@ -69,7 +70,7 @@ defmodule RabbitMQCtl.MixfileBase do
                     RabbitMQ.CLI.Wolf.Commands.CanisLatransCommand,
                     RabbitMQ.CLI.Wolf.Commands.CanisAureusCommand
                   ]
-    [{:modules, mods ++ test_modules |> Enum.sort} | app]
+    [{:modules, mods ++ test_modules |> Enum.sort}| app]
   end
   defp add_modules(app, _) do
     app
@@ -99,9 +100,41 @@ defmodule RabbitMQCtl.MixfileBase do
         override: true
       },
       {
+        :rabbit,
+        path: Path.join(deps_dir, "rabbit"),
+        compile: "true",
+        override: true
+      },
+      {
         :amqp_client,
         only: :test,
         path: Path.join(deps_dir, "amqp_client"),
+        compile: "true",
+        override: true
+      },
+      {
+        :ranch,
+        path: Path.join(deps_dir, "ranch"),
+        compile: "true",
+        override: true
+      },
+      {
+        :jsx,
+        path: Path.join(deps_dir, "jsx"),
+        compile: "true",
+        override: true
+      },
+
+      {
+        :lager,
+        path: Path.join(deps_dir, "lager"),
+        compile: "true",
+        override: true
+      },
+
+      {
+        :ranch_proxy_protocol,
+        path: Path.join(deps_dir, "ranch_proxy_protocol"),
         compile: "true",
         override: true
       },
