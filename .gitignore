@@ -1,7 +1,7 @@
 /_build
 /cover
 /deps
-/escript
+#/escript
 /log
 /.erlang.mk/
 /ebin
