@@ -51,11 +51,12 @@ defmodule RabbitMQ.CLI.Core.Helpers do
 
   def validate_rabbit_app_running(%{node: node_name, timeout: timeout}) do
     case :rabbit_misc.rpc_call(node_name, :rabbit, :is_running, [], timeout) do
+      :true -> :ok
       :false ->
         errmsg = "rabbit application is not running on node #{node_name}.\
  Suggestion: start it with 'rabbitmqctl start_app' and try again"
         {:validation_failure, errmsg}
-      :true -> :ok
+      error -> {:validation_failure, {error, node_name}}
     end
   end
 
