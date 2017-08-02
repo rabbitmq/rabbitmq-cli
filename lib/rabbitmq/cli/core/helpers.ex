@@ -49,6 +49,16 @@ defmodule RabbitMQ.CLI.Core.Helpers do
     {:validation_failure, err}
   end
 
+  def validate_rabbit_app_running(%{node: node_name, timeout: timeout}) do
+    case :rabbit_misc.rpc_call(node_name, :rabbit, :is_running, [], timeout) do
+      :false ->
+        errmsg = "rabbit application is not running on node #{node_name}.\
+ Suggestion: start it with 'rabbitmqctl start_app' and try again"
+        {:validation_failure, errmsg}
+      :true -> :ok
+    end
+  end
+
   def memory_units do
     ["k", "kiB", "M", "MiB", "G", "GiB", "kB", "MB", "GB", ""]
   end
