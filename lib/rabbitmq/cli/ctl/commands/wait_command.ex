@@ -13,7 +13,6 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.WaitCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   @default_timeout 10_000
@@ -41,6 +40,7 @@ defmodule RabbitMQ.CLI.Ctl.Commands.WaitCommand do
 
   def scopes(), do: [:ctl, :diagnostics]
 
+  def requires_rabbit_app_running?, do: false
 
   def run([pid_file], %{node: node_name, timeout: timeout} = opts) do
     app_names = :rabbit_and_plugins

@@ -31,6 +31,13 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
                        offline: :boolean,
                        all: :boolean]
 
+  def requires_rabbit_app_running?(%{online: online, offline: offline}) do
+    case get_mode(online, offline) do
+      :online -> true
+      :offline -> false
+    end
+  end
+
   def validate([], %{all: false}) do
     {:validation_failure, :not_enough_arguments}
   end
@@ -58,7 +65,6 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
     ["Enabling plugins on node #{node_name}:" | plugins]
   end
 
-
   def run(plugin_names, %{all: all_flag} = opts) do
     plugins = case all_flag do
       false -> for s <- plugin_names, do: String.to_atom(s);
@@ -83,12 +89,7 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
       MapSet.new(enabled),
       MapSet.difference(MapSet.new(plugins), enabled_implicitly))
 
-    mode = case {online, offline} do
-             {true, false}  -> :online;
-             {false, true}  -> :offline;
-             # fallback to online mode
-             {false, false} -> :online
-           end
+    mode = get_mode(online, offline)
 
     case PluginHelpers.set_enabled_plugins(MapSet.to_list(plugins_to_set), opts) do
       {:ok, enabled_plugins} ->
@@ -106,6 +107,15 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
                end)])};
       {:error, _} = err ->
         err
+    end
+  end
+
+  defp get_mode(online, offline) do
+    case {online, offline} do
+      {true, false}  -> :online
+      {false, true}  -> :offline
+      # fallback to online mode
+      {false, false} -> :online
     end
   end
 

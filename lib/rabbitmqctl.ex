@@ -155,7 +155,7 @@ defmodule RabbitMQCtl do
   end
 
   defp validate_and_run_command(command, arguments, options) do
-    validate_offline(command, options)
+    validate_rabbit_app(command, options)
       |> validate_command(command, arguments, options)
   end
 
@@ -210,14 +210,28 @@ defmodule RabbitMQCtl do
     RabbitMQ.CLI.Printers.StdIO
   end
 
-  defp validate_offline(command, options) do
-    offline_ok = case function_exported?(command, :offline_ok?, 0) do
-                   true  -> command.offline_ok?
-                   false -> false
-                 end
-    case offline_ok do
-      true -> :ok
-      false -> Helpers.rabbit_app_running?(options)
+  defp validate_rabbit_app(command, options) do
+    arity_0_exported =
+      function_exported?(command, :requires_rabbit_app_running?, 0)
+    arity_1_exported =
+      function_exported?(command, :requires_rabbit_app_running?, 1)
+    requires_rabbit_app_running =
+      case arity_1_exported do
+        true  -> command.requires_rabbit_app_running?(options)
+        false ->
+          case arity_0_exported do
+            true  -> command.requires_rabbit_app_running?
+            false ->
+              # Note: requires_rabbit_app_running? is an optional
+              # callback that, if not defined, means the command
+              # *does* require the rabbit application, so
+              # return true here
+              true
+          end
+      end
+    case requires_rabbit_app_running do
+      true -> Helpers.rabbit_app_running?(options)
+      false -> :ok
     end
   end
 

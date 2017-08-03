@@ -30,7 +30,8 @@ defmodule RabbitMQ.CLI.CommandBehaviour do
                       usage_additional: 0,
                       switches: 0,
                       aliases: 0,
-                      offline_ok?: 0
+                      requires_rabbit_app_running?: 0,
+                      requires_rabbit_app_running?: 1
 
   @callback switches() :: Keyword.t
   @callback aliases() :: Keyword.t
@@ -39,6 +40,7 @@ defmodule RabbitMQ.CLI.CommandBehaviour do
   @callback scopes() :: [Atom.t]
   @callback usage_additional() :: String.t | [String.t]
 
-  # Returns true if rabbit app can be offline
-  @callback offline_ok?() :: Boolean.t
+  # Returns true if rabbit app must be running for command to run
+  @callback requires_rabbit_app_running? :: Boolean.t
+  @callback requires_rabbit_app_running?(Map.t) :: Boolean.t
 end

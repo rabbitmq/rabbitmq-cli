@@ -13,7 +13,6 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.StopCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
@@ -50,4 +49,6 @@ defmodule RabbitMQ.CLI.Ctl.Commands.StopCommand do
     "Stopping and halting node #{node_name} (will monitor pid file #{pidfile_path}) ..."
   end
   def banner(_, %{node: node_name}), do: "Stopping and halting node #{node_name} ..."
+
+  def requires_rabbit_app_running?, do: false
 end
