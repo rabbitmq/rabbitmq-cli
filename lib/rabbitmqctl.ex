@@ -235,7 +235,11 @@ defmodule RabbitMQCtl do
 
   defp validation_error(err_detail, command, unparsed_command, options) do
     err = format_validation_error(err_detail) # TODO format the error better
-    base_error = "#{err}\nGiven:\n\t#{unparsed_command |> Enum.join(" ")}"
+    err = case String.ends_with?(err, "\n") do
+            :true -> err
+            :false -> err <> "\n"
+          end
+    base_error = "#{err}Given:\n\t#{unparsed_command |> Enum.join(" ")}"
     usage = HelpCommand.base_usage(command, options)
     message = base_error <> "\n" <> usage
     {:error, ExitCodes.exit_code_for({:validation_failure, err_detail}), message}
@@ -246,8 +250,10 @@ defmodule RabbitMQCtl do
      badrpc_error_message_header(node) <> diagnostics
   end
   defp format_validation_error({:rabbit_app_not_running, node}) do
-    errmsg = "Error: rabbit application is not running on node #{node}.\n" <>
-             "Suggestion: start it with \"rabbitmqctl start_app\" and try again"
+    ~s"""
+      Error: rabbit application is not running on node #{node}.
+      Suggestion: start it with "rabbitmqctl start_app" and try again
+      """
   end
   defp format_validation_error(:not_enough_args), do: "Error: not enough arguments."
   defp format_validation_error({:not_enough_args, detail}), do: "Error: not enough arguments. #{detail}"
