@@ -16,13 +16,10 @@
 
 defmodule RabbitMQ.CLI.Ctl.Commands.AuthenticateUserCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
 
   def validate(args, _) when length(args) < 2, do: {:validation_failure, :not_enough_args}
   def validate(args, _) when length(args) > 2, do: {:validation_failure, :too_many_args}
-  def validate([_,_], opts) do
-    Helpers.validate_rabbit_app_running(opts)
-  end
+  def validate([_,_], _), do: :ok
 
   def merge_defaults(args, opts), do: {args, opts}
 

@@ -29,9 +29,7 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClearOperatorPolicyCommand do
   def validate([_,_|_], _) do
     {:validation_failure, :too_many_args}
   end
-  def validate([_], opts) do
-    Helpers.validate_rabbit_app_running(opts)
-  end
+  def validate([_], _), do: :ok
 
   def run([key], %{node: node_name, vhost: vhost}) do
     :rabbit_misc.rpc_call(node_name,

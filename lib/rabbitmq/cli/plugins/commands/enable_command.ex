@@ -15,12 +15,11 @@
 
 
 defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
+  @behaviour RabbitMQ.CLI.CommandBehaviour
 
   alias RabbitMQ.CLI.Plugins.Helpers, as: PluginHelpers
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-  alias RabbitMQ.CLI.Core.ExitCodes, as: ExitCodes
-
-  @behaviour RabbitMQ.CLI.CommandBehaviour
+  alias RabbitMQ.CLI.Core.Validators, as: Validators
 
   def formatter(), do: RabbitMQ.CLI.Formatters.Plugins
 
@@ -45,9 +44,9 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
 
   def validate(_plugins, opts) do
     :ok
-    |> Helpers.validate_step(fn() -> Helpers.require_rabbit_and_plugins(opts) end)
-    |> Helpers.validate_step(fn() -> PluginHelpers.enabled_plugins_file(opts) end)
-    |> Helpers.validate_step(fn() -> Helpers.plugins_dir(opts) end)
+    |> Validators.validate_step(fn() -> Helpers.require_rabbit_and_plugins(opts) end)
+    |> Validators.validate_step(fn() -> PluginHelpers.enabled_plugins_file(opts) end)
+    |> Validators.validate_step(fn() -> Helpers.plugins_dir(opts) end)
   end
 
   def usage, do: "enable <plugin>|--all [--offline] [--online]"

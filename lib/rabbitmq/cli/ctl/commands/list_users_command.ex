@@ -27,9 +27,7 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ListUsersCommand do
   def validate([_|_], _) do
     {:validation_failure, :too_many_args}
   end
-  def validate(_, opts) do
-    Helpers.validate_rabbit_app_running(opts)
-  end
+  def validate(_, _), do: :ok
 
   def run([], %{node: node_name, timeout: timeout}) do
     :rabbit_misc.rpc_call(node_name, :rabbit_auth_backend_internal, :list_users, [], timeout)

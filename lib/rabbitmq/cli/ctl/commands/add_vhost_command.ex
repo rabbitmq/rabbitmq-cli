@@ -21,9 +21,7 @@ defmodule RabbitMQ.CLI.Ctl.Commands.AddVhostCommand do
 
   def validate([], _), do: {:validation_failure, :not_enough_args}
   def validate([_|_] = args, _) when length(args) > 1, do: {:validation_failure, :too_many_args}
-  def validate([_], opts) do
-    Helpers.validate_rabbit_app_running(opts)
-  end
+  def validate([_], _), do: :ok
 
   def merge_defaults(args, opts), do: {args, opts}
 

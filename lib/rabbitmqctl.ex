@@ -68,7 +68,7 @@ defmodule RabbitMQCtl do
         options = parsed_options |> merge_all_defaults |> normalize_options
         {arguments, options} = command.merge_defaults(arguments, options)
         with_distribution(options, fn() ->
-          validate_and_run_command(options, command, arguments)
+          validate_and_run_command(command, arguments, options)
           |> handle_command_output(command, options, unparsed_command, output_fun)
         end)
     end
@@ -154,7 +154,15 @@ defmodule RabbitMQCtl do
     opts
   end
 
-  defp validate_and_run_command(options, command, arguments) do
+  defp validate_and_run_command(command, arguments, options) do
+    validate_offline(command, options)
+      |> validate_command(command, arguments, options)
+  end
+
+  defp validate_command({:validation_failure, _} = err, _, _, _) do
+    err
+  end
+  defp validate_command(_output, command, arguments, options) do
     case command.validate(arguments, options) do
       :ok ->
         maybe_print_banner(command, arguments, options)
@@ -180,11 +188,11 @@ defmodule RabbitMQCtl do
     module_name = Module.safe_concat("RabbitMQ.CLI.Formatters", Macro.camelize(formatter))
     case Code.ensure_loaded(module_name) do
       {:module, _}      -> module_name;
-      {:error, :nofile} -> default_formatter(command)
+      {:error, :nofile} -> Helpers.default_formatter(command)
     end
   end
   defp get_formatter(command, _) do
-    default_formatter(command)
+    Helpers.default_formatter(command)
   end
 
   defp get_printer(%{printer: printer}) do
@@ -198,14 +206,18 @@ defmodule RabbitMQCtl do
     default_printer()
   end
 
-  def default_printer() do
+  defp default_printer() do
     RabbitMQ.CLI.Printers.StdIO
   end
 
-  def default_formatter(command) do
-    case function_exported?(command, :formatter, 0) do
-      true  -> command.formatter;
-      false -> RabbitMQ.CLI.Formatters.String
+  defp validate_offline(command, options) do
+    offline_ok = case function_exported?(command, :offline_ok?, 0) do
+                   true  -> command.offline_ok?
+                   false -> false
+                 end
+    case offline_ok do
+      true -> :ok
+      false -> Helpers.rabbit_app_running?(options)
     end
   end
 
@@ -354,5 +366,4 @@ defmodule RabbitMQCtl do
         {:error, ExitCodes.exit_config, "Distribution failed: #{inspect reason}"}
     end
   end
-
 end

@@ -13,14 +13,12 @@
 ## The Initial Developer of the Original Code is Pivotal Software, Inc.
 ## Copyright (c) 2016-2017 Pivotal Software, Inc.  All rights reserved.
 
-alias RabbitMQ.CLI.Ctl.Validators, as: Validators
-alias RabbitMQ.CLI.Core.Distribution,   as: Distribution
-
 defmodule RabbitMQ.CLI.Ctl.Commands.ForgetClusterNodeCommand do
-  import Rabbitmq.Atom.Coerce
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  import Rabbitmq.Atom.Coerce
+  alias RabbitMQ.CLI.Core.Validators, as: Validators
+  alias RabbitMQ.CLI.Core.Distribution, as: Distribution
 
   def switches(), do: [offline: :boolean]
 

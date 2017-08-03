@@ -13,16 +13,22 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 # Small helper functions, mostly related to connecting to RabbitMQ and
 # handling memory units.
-alias RabbitMQ.CLI.Core.Config, as: Config
 
 defmodule RabbitMQ.CLI.Core.Helpers do
   require Record
+  alias RabbitMQ.CLI.Core.Config, as: Config
+
+  def default_formatter(command) do
+    case function_exported?(command, :formatter, 0) do
+      true  -> command.formatter;
+      false -> RabbitMQ.CLI.Formatters.String
+    end
+  end
 
   def get_rabbit_hostname() do
-    parse_node(RabbitMQ.CLI.Core.Config.get_option(:node))
+    parse_node(Config.get_option(:node))
   end
 
   def parse_node(nil), do: get_rabbit_hostname()
@@ -38,26 +44,6 @@ defmodule RabbitMQ.CLI.Core.Helpers do
   end
 
   def hostname, do: :inet.gethostname() |> elem(1) |> List.to_string
-
-  def validate_step(:ok, step) do
-    case step.() do
-      {:error, err} -> {:validation_failure, err};
-      _             -> :ok
-    end
-  end
-  def validate_step({:validation_failure, err}, _) do
-    {:validation_failure, err}
-  end
-
-  def validate_rabbit_app_running(%{node: node_name, timeout: timeout}) do
-    case :rabbit_misc.rpc_call(node_name, :rabbit, :is_running, [], timeout) do
-      :true -> :ok
-      :false ->
-        {:validation_failure, {:rabbit_app_not_running, node_name}}
-      error ->
-        {:validation_failure, {error, node_name}}
-    end
-  end
 
   def memory_units do
     ["k", "kiB", "M", "MiB", "G", "GiB", "kB", "MB", "GB", ""]
@@ -195,6 +181,16 @@ defmodule RabbitMQ.CLI.Core.Helpers do
 
   def node_running?(node) do
     :net_adm.ping(node) == :pong
+  end
+
+  def rabbit_app_running?(%{node: node, timeout: timeout}) do
+    case :rabbit_misc.rpc_call(node, :rabbit, :is_running, [], timeout) do
+      true -> :ok
+      false ->
+        {:validation_failure, {:rabbit_app_not_running, node}}
+      error ->
+        {:validation_failure, {error, node}}
+    end
   end
 
   # Convert function to stream
