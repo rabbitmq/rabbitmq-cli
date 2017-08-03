@@ -235,7 +235,7 @@ defmodule RabbitMQCtl do
 
   defp validation_error(err_detail, command, unparsed_command, options) do
     err = format_validation_error(err_detail) # TODO format the error better
-    base_error = "Error: #{err}\nGiven:\n\t#{unparsed_command |> Enum.join(" ")}"
+    base_error = "#{err}\nGiven:\n\t#{unparsed_command |> Enum.join(" ")}"
     usage = HelpCommand.base_usage(command, options)
     message = base_error <> "\n" <> usage
     {:error, ExitCodes.exit_code_for({:validation_failure, err_detail}), message}
@@ -245,17 +245,21 @@ defmodule RabbitMQCtl do
      diagnostics = get_node_diagnostics(node)
      badrpc_error_message_header(node) <> diagnostics
   end
-  defp format_validation_error(:not_enough_args), do: "not enough arguments."
-  defp format_validation_error({:not_enough_args, detail}), do: "not enough arguments. #{detail}"
-  defp format_validation_error(:too_many_args), do: "too many arguments."
-  defp format_validation_error({:too_many_args, detail}), do: "too many arguments. #{detail}"
-  defp format_validation_error(:bad_argument), do: "Bad argument."
-  defp format_validation_error({:bad_argument, detail}), do: "Bad argument. #{detail}"
+  defp format_validation_error({:rabbit_app_not_running, node}) do
+    errmsg = "Error: rabbit application is not running on node #{node}.\n" <>
+             "Suggestion: start it with \"rabbitmqctl start_app\" and try again"
+  end
+  defp format_validation_error(:not_enough_args), do: "Error: not enough arguments."
+  defp format_validation_error({:not_enough_args, detail}), do: "Error: not enough arguments. #{detail}"
+  defp format_validation_error(:too_many_args), do: "Error: too many arguments."
+  defp format_validation_error({:too_many_args, detail}), do: "Error: too many arguments. #{detail}"
+  defp format_validation_error(:bad_argument), do: "Error: bad argument."
+  defp format_validation_error({:bad_argument, detail}), do: "Error: bad argument. #{detail}"
   defp format_validation_error({:bad_option, opts}) do
-    header = "Invalid options for this command:"
+    header = "Error: invalid options for this command:"
     Enum.join([header | for {key, val} <- opts do "#{key} : #{val}" end], "\n")
   end
-  defp format_validation_error(err), do: inspect err
+  defp format_validation_error(err), do: "Error: " <> inspect err
 
   defp exit_program(code) do
     :net_kernel.stop
