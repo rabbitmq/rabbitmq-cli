@@ -15,7 +15,7 @@
 
 
 defmodule RabbitMQCtl do
-  alias RabbitMQ.CLI.Core.Distribution,  as: Distribution
+  alias RabbitMQ.CLI.Core.Distribution, as: Distribution
 
   alias RabbitMQ.CLI.Ctl.Commands.HelpCommand, as: HelpCommand
   alias RabbitMQ.CLI.Core.Output, as: Output

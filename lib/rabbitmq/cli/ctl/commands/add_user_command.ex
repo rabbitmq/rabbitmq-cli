@@ -34,8 +34,9 @@ defmodule RabbitMQ.CLI.Ctl.Commands.AddUserCommand do
   def validate(["", _], _) do
     {:validation_failure, {:bad_argument, "user cannot be empty string."}}
   end
-
-  def validate([_,_], _), do: :ok
+  def validate(_, opts) do
+    Helpers.validate_rabbit_app_running(opts)
+  end
 
   def run([_, _] = args, %{node: node_name}) do
     :rabbit_misc.rpc_call(node_name,
