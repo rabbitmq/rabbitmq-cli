@@ -17,7 +17,6 @@
 defmodule RabbitMQ.CLI.Ctl.Commands.ListUsersCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
 
   def formatter(), do: RabbitMQ.CLI.Formatters.Table
   def merge_defaults(args, opts), do: {args, opts}
