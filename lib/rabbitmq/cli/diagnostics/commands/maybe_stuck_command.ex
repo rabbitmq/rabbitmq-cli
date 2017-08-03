@@ -13,10 +13,11 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Diagnostics.Commands.MaybeStuckCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+
+  def requires_rabbit_app_running?, do: false
 
   def merge_defaults(args, opts), do: {args, opts}
 

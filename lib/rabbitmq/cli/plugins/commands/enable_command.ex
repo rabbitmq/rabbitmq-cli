@@ -13,7 +13,6 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
 
@@ -32,10 +31,7 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
                        all: :boolean]
 
   def requires_rabbit_app_running?(%{online: online, offline: offline}) do
-    case get_mode(online, offline) do
-      :online -> true
-      :offline -> false
-    end
+    PluginHelpers.requires_rabbit_app_running?(online, offline)
   end
 
   def validate([], %{all: false}) do
@@ -89,7 +85,7 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
       MapSet.new(enabled),
       MapSet.difference(MapSet.new(plugins), enabled_implicitly))
 
-    mode = get_mode(online, offline)
+    mode = PluginHelpers.get_mode(online, offline)
 
     case PluginHelpers.set_enabled_plugins(MapSet.to_list(plugins_to_set), opts) do
       {:ok, enabled_plugins} ->
@@ -107,15 +103,6 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
                end)])};
       {:error, _} = err ->
         err
-    end
-  end
-
-  defp get_mode(online, offline) do
-    case {online, offline} do
-      {true, false}  -> :online
-      {false, true}  -> :offline
-      # fallback to online mode
-      {false, false} -> :online
     end
   end
 

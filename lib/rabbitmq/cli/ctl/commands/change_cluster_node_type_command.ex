@@ -13,13 +13,14 @@
 ## The Initial Developer of the Original Code is Pivotal Software, Inc.
 ## Copyright (c) 2016-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.ChangeClusterNodeTypeCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
 
   def merge_defaults(args, opts) do
     {args, opts}
   end
+
+  def requires_rabbit_app_running?, do: false
 
   def validate([], _),  do: {:validation_failure, :not_enough_args}
 

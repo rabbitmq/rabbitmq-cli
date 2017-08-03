@@ -13,13 +13,11 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Plugins.Commands.DisableCommand do
+  @behaviour RabbitMQ.CLI.CommandBehaviour
 
   alias RabbitMQ.CLI.Plugins.Helpers, as: PluginHelpers
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
-  @behaviour RabbitMQ.CLI.CommandBehaviour
 
   def formatter(), do: RabbitMQ.CLI.Formatters.Plugins
 
@@ -30,6 +28,10 @@ defmodule RabbitMQ.CLI.Plugins.Commands.DisableCommand do
   def switches(), do: [online: :boolean,
                        offline: :boolean,
                        all: :boolean]
+
+  def requires_rabbit_app_running?(%{online: online, offline: offline}) do
+    PluginHelpers.requires_rabbit_app_running?(online, offline)
+  end
 
   def validate([], %{all: false}) do
     {:validation_failure, :not_enough_arguments}
@@ -68,7 +70,6 @@ defmodule RabbitMQ.CLI.Plugins.Commands.DisableCommand do
     ["Disabling plugins on node #{node_name}:" | plugins]
   end
 
-
   def run(plugin_names, %{all: all_flag, node: node_name} = opts) do
     plugins = case all_flag do
       false -> for s <- plugin_names, do: String.to_atom(s);
@@ -82,12 +83,7 @@ defmodule RabbitMQ.CLI.Plugins.Commands.DisableCommand do
     to_disable_deps = :rabbit_plugins.dependencies(true, plugins, all)
     plugins_to_set  = MapSet.difference(MapSet.new(enabled), MapSet.new(to_disable_deps))
 
-    mode = case {online, offline} do
-             {true, false}  -> :online;
-             {false, true}  -> :offline;
-             # fallback to online mode
-             {false, false} -> :online
-           end
+    mode = PluginHelpers.get_mode(online, offline)
 
     case PluginHelpers.set_enabled_plugins(MapSet.to_list(plugins_to_set), opts) do
       {:ok, enabled_plugins} ->

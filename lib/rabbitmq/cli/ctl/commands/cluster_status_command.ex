@@ -13,14 +13,17 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.ClusterStatusCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
 
+  def requires_rabbit_app_running?, do: false
+
   def merge_defaults(args, opts), do: {args, opts}
+
   def validate(args, _) when length(args) != 0, do: {:validation_failure, :too_many_args}
   def validate([], _), do: :ok
+
   def formatter(), do: RabbitMQ.CLI.Formatters.Erlang
 
   def scopes(), do: [:ctl, :diagnostics]
@@ -43,7 +46,6 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClusterStatusCommand do
   end
 
   def usage, do: "cluster_status"
-
 
   defp alarms_by_node(node) do
     alarms = :rabbit_misc.rpc_call(node, :rabbit, :alarms, [])

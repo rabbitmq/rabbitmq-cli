@@ -13,14 +13,14 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.HelpCommand do
+  @behaviour RabbitMQ.CLI.CommandBehaviour
 
   alias RabbitMQ.CLI.Core.CommandModules, as: CommandModules
   alias RabbitMQ.CLI.Core.ExitCodes,      as: ExitCodes
   alias RabbitMQ.CLI.Core.Config,         as: Config
 
-  @behaviour RabbitMQ.CLI.CommandBehaviour
+  def requires_rabbit_app_running?, do: false
 
   def validate(_, _), do: :ok
 

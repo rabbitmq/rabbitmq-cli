@@ -17,6 +17,8 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ListHashesCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
 
+  def requires_rabbit_app_running?, do: false
+
   def merge_defaults(args, opts) do
     {args, opts}
   end
@@ -35,5 +37,4 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ListHashesCommand do
   def usage, do: "list_hashes"
 
   def banner(_, _), do: "Listing supported hash algorithms ..."
-
 end

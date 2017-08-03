@@ -13,14 +13,16 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.EnvironmentCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
 
+  def requires_rabbit_app_running?, do: false
+
+  def merge_defaults(args, opts), do: {args, opts}
+
   def validate([_|_], _), do: {:validation_failure, :too_many_args}
   def validate(_, _), do: :ok
-  def merge_defaults(args, opts), do: {args, opts}
 
   def formatter(), do: RabbitMQ.CLI.Formatters.Erlang
 
@@ -32,5 +34,4 @@ defmodule RabbitMQ.CLI.Ctl.Commands.EnvironmentCommand do
   def usage, do: "environment"
 
   def banner(_, %{node: node_name}), do: "Application environment of node #{node_name} ..."
-
 end

@@ -22,6 +22,8 @@ defmodule RabbitMQ.CLI.Ctl.Commands.RenameClusterNodeCommand do
 
   def switches(), do: [mnesia_dir: :string, rabbitmq_home: :string]
 
+  def requires_rabbit_app_running?, do: false
+
   def merge_defaults(args, opts), do: {args, opts}
 
   def validate([], _),  do: {:validation_failure, :not_enough_args}

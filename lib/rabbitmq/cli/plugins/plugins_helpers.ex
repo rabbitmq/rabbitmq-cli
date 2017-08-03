@@ -12,12 +12,29 @@
 ##
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
-alias RabbitMQ.CLI.Core.Helpers, as: CliHelpers
-alias RabbitMQ.CLI.Core.Config, as: Config
 
 defmodule RabbitMQ.CLI.Plugins.Helpers do
   import Rabbitmq.Atom.Coerce
   import RabbitCommon.Records
+
+  alias RabbitMQ.CLI.Core.Helpers, as: CliHelpers
+  alias RabbitMQ.CLI.Core.Config, as: Config
+
+  def requires_rabbit_app_running?(online, offline) do
+    case get_mode(online, offline) do
+      :online -> true
+      :offline -> false
+    end
+  end
+
+  def get_mode(online, offline) do
+    case {online, offline} do
+      {true, false}  -> :online
+      {false, true}  -> :offline
+      # fallback to online mode
+      {false, false} -> :online
+    end
+  end
 
   def list(opts) do
     {:ok, dir} = CliHelpers.plugins_dir(opts)

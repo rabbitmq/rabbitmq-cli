@@ -19,6 +19,8 @@ defmodule RabbitMQ.CLI.Ctl.Commands.HipeCompileCommand do
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
   alias RabbitMQ.CLI.Core.Validators, as: Validators
 
+  def requires_rabbit_app_running?, do: false
+
   def merge_defaults(args, opts) do
     {args, opts}
   end

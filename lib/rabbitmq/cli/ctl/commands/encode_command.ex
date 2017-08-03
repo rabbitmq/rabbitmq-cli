@@ -19,6 +19,8 @@ defmodule RabbitMQ.CLI.Ctl.Commands.EncodeCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
 
+  def requires_rabbit_app_running?, do: false
+
   def merge_defaults(args, opts) do
     {args, Map.merge(%{
         cipher:       :rabbit_pbe.default_cipher(),
@@ -72,5 +74,4 @@ defmodule RabbitMQ.CLI.Ctl.Commands.EncodeCommand do
   defp supports_cipher(cipher), do: Enum.member?(:rabbit_pbe.supported_ciphers(), cipher)
 
   defp supports_hash(hash), do: Enum.member?(:rabbit_pbe.supported_hashes(), hash)
-
 end

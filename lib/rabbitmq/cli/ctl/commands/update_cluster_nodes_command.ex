@@ -13,11 +13,12 @@
 ## The Initial Developer of the Original Code is Pivotal Software, Inc.
 ## Copyright (c) 2016-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.UpdateClusterNodesCommand do
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
 
   @behaviour RabbitMQ.CLI.CommandBehaviour
+
+  def requires_rabbit_app_running?, do: false
 
   def merge_defaults(args, opts) do
     {args, opts}
