@@ -15,11 +15,10 @@
 
 
 defmodule RabbitMQ.CLI.Ctl.Commands.ClearOperatorPolicyCommand do
-
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
+
   def merge_defaults(args, opts) do
     {args, Map.merge(%{vhost: "/"}, opts)}
   end
@@ -30,7 +29,9 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClearOperatorPolicyCommand do
   def validate([_,_|_], _) do
     {:validation_failure, :too_many_args}
   end
-  def validate([_], _), do: :ok
+  def validate([_], opts) do
+    Helpers.validate_rabbit_app_running(opts)
+  end
 
   def run([key], %{node: node_name, vhost: vhost}) do
     :rabbit_misc.rpc_call(node_name,
@@ -38,7 +39,6 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClearOperatorPolicyCommand do
   end
 
   def usage, do: "clear_operator_policy [-p <vhost>] <key>"
-
 
   def banner([key], %{vhost: vhost}) do
     "Clearing operator policy \"#{key}\" on vhost \"#{vhost}\" ..."

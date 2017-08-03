@@ -15,11 +15,9 @@
 
 
 defmodule RabbitMQ.CLI.Ctl.Commands.AddUserCommand do
-
+  @behaviour RabbitMQ.CLI.CommandBehaviour
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
   alias RabbitMQ.CLI.Core.ExitCodes, as: ExitCodes
-
-  @behaviour RabbitMQ.CLI.CommandBehaviour
 
   def merge_defaults(args, opts), do: {args, opts}
 

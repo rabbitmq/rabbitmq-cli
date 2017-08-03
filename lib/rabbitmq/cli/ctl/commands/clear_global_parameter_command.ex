@@ -15,11 +15,10 @@
 
 
 defmodule RabbitMQ.CLI.Ctl.Commands.ClearGlobalParameterCommand do
-
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
+
   def merge_defaults(args, opts) do
     {args, opts}
   end
@@ -30,7 +29,9 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClearGlobalParameterCommand do
   def validate([_|_] = args, _) when length(args) > 1 do
     {:validation_failure, :too_many_args}
   end
-  def validate([_], _), do: :ok
+  def validate([_], opts) do
+    Helpers.validate_rabbit_app_running(opts)
+  end
 
   def run([key], %{node: node_name}) do
     :rabbit_misc.rpc_call(node_name,

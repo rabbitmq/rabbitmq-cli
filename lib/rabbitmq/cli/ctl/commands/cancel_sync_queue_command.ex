@@ -16,6 +16,7 @@
 defmodule RabbitMQ.CLI.Ctl.Commands.CancelSyncQueueCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
 
   def merge_defaults(args, opts) do
     {args, Map.merge(default_opts(), opts)}
@@ -23,9 +24,11 @@ defmodule RabbitMQ.CLI.Ctl.Commands.CancelSyncQueueCommand do
 
   def usage, do: "cancel_sync_queue [-p <vhost>] queue"
 
-  def validate([], _),  do: {:validation_failure, :not_enough_args}
-  def validate([_], _), do: :ok
-  def validate(_, _),   do: {:validation_failure, :too_many_args}
+  def validate([], _), do: {:validation_failure, :not_enough_args}
+  def validate([_], opts) do
+    Helpers.validate_rabbit_app_running(opts)
+  end
+  def validate(_, _), do: {:validation_failure, :too_many_args}
 
   def run([queue], %{vhost: vhost, node: node_name}) do
     :rpc.call(node_name,
