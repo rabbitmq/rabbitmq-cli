@@ -109,7 +109,7 @@ defmodule RabbitMQCtlTest do
     command1 = ["--invalid=true", "list_permissions", "-p", "/"]
     assert capture_io(:stderr, fn ->
       error_check(command1, exit_usage())
-    end) =~ ~r/Error: Invalid options for this command/
+    end) =~ ~r/Error: invalid options for this command/
 
     command2 = ["--node", "rabbit", "status", "quack"]
     assert capture_io(:stderr, fn ->
@@ -150,12 +150,12 @@ defmodule RabbitMQCtlTest do
     command1 = ["status", "--nod=rabbit"]
     assert capture_io(:stderr, fn ->
       error_check(command1, exit_usage())
-    end) =~ ~r/Error: Invalid options for this command/
+    end) =~ ~r/Error: invalid options for this command/
 
     command2 = ["list_permissions", "-o", "/"]
     assert capture_io(:stderr, fn ->
       error_check(command2, exit_usage())
-    end) =~ ~r/Error: Invalid options for this command/
+    end) =~ ~r/Error: invalid options for this command/
   end
 
 ## ------------------------- Auto-complete ------------------------------------
