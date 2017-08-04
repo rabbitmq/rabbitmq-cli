@@ -23,7 +23,6 @@ defmodule RabbitMQCtl do
 
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
   alias RabbitMQ.CLI.Core.Parser, as: Parser
-  alias RabbitMQ.CLI.Core.Validators, as: Validators
 
   alias RabbitMQ.CLI.Core.CommandModules, as: CommandModules
 
@@ -231,7 +230,7 @@ defmodule RabbitMQCtl do
           end
       end
     case requires_rabbit_app_running do
-      true -> Validators.rabbit_app_running?(options)
+      true -> Helpers.rabbit_app_running?(options)
       false -> :ok
     end
   end
@@ -272,6 +271,10 @@ defmodule RabbitMQCtl do
     {:error, ExitCodes.exit_code_for({:validation_failure, err_detail}), message}
   end
 
+  defp format_validation_error({{:badrpc, :nodedown}, node}) do
+     diagnostics = get_node_diagnostics(node)
+     badrpc_error_message_header(node) <> diagnostics
+  end
   defp format_validation_error({:rabbit_app_not_running, node}) do
     ~s"""
       Error: rabbit application is not running on node #{node}.
