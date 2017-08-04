@@ -17,9 +17,18 @@
 # Small helper functions, mostly related to connecting to RabbitMQ and
 # handling memory units.
 
-defmodule RabbitMQ.CLI.Ctl.Validators do
+defmodule RabbitMQ.CLI.Core.Validators do
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
 
+  def validate_step(:ok, step) do
+    case step.() do
+      {:error, err} -> {:validation_failure, err};
+      _             -> :ok
+    end
+  end
+  def validate_step({:validation_failure, err}, _) do
+    {:validation_failure, err}
+  end
 
   def chain([validator | rest], args) do
     case apply(validator, args) do

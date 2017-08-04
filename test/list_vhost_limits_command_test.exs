@@ -106,7 +106,7 @@ defmodule ListVhostLimitsCommandTest do
   end
 
   @tag vhost: "bad-vhost"
-  test "run: providing a non-existent vhost reports an error", context do
+  test "run: providing a non-existent vhost reports an error", _context do
     s = "non-existent-vhost-a9sd89"
 
     assert @command.run([], %{node: get_rabbit_hostname(),
@@ -114,8 +114,6 @@ defmodule ListVhostLimitsCommandTest do
   end
 
   test "banner", context do
-    vhost_opts = Map.merge(context[:opts], %{vhost: context[:vhost]})
-
     assert @command.banner([], %{vhost: context[:vhost]})
       == "Listing limits for vhost \"#{context[:vhost]}\" ..."
     assert @command.banner([], %{global: true})

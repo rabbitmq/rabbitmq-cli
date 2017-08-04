@@ -15,11 +15,10 @@
 
 
 defmodule RabbitMQ.CLI.Ctl.Commands.ChangePasswordCommand do
-
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
+
   def merge_defaults(args, opts), do: {args, opts}
 
   def validate(args, _) when length(args) < 2, do: {:validation_failure, :not_enough_args}
@@ -34,5 +33,4 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ChangePasswordCommand do
   def usage, do: "change_password <username> <password>"
 
   def banner([user| _], _), do: "Changing password for user \"#{user}\" ..."
-
 end

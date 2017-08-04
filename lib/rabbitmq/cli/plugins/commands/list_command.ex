@@ -13,19 +13,17 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Plugins.Commands.ListCommand do
-
-  import RabbitCommon.Records
-
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
-  alias RabbitMQ.CLI.Plugins.Helpers, as: PluginHelpers
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
+  import RabbitCommon.Records
   use RabbitMQ.CLI.DefaultOutput
 
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
+  alias RabbitMQ.CLI.Plugins.Helpers, as: PluginHelpers
+
   def formatter(), do: RabbitMQ.CLI.Formatters.Plugins
+
+  def requires_rabbit_app_running?, do: false
 
   def merge_defaults([], opts), do: merge_defaults([".*"], opts)
   def merge_defaults(args, opts), do: {args, Map.merge(default_opts(), opts)}
@@ -68,7 +66,6 @@ defmodule RabbitMQ.CLI.Plugins.Commands.ListCommand do
   def usage, do: "list [pattern] [--verbose] [--minimal] [--enabled] [--implicitly-enabled]"
 
   def banner([pattern], _), do: "Listing plugins with pattern \"#{pattern}\" ..."
-
 
   def run([pattern], %{node: node_name} = opts) do
     %{verbose: verbose, minimal: minimal,
@@ -162,5 +159,4 @@ defmodule RabbitMQ.CLI.Plugins.Commands.ListCommand do
     %{minimal: false, verbose: false,
       enabled: false, implicitly_enabled: false}
   end
-
 end

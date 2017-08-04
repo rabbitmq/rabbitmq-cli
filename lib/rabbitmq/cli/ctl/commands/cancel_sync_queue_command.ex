@@ -23,9 +23,9 @@ defmodule RabbitMQ.CLI.Ctl.Commands.CancelSyncQueueCommand do
 
   def usage, do: "cancel_sync_queue [-p <vhost>] queue"
 
-  def validate([], _),  do: {:validation_failure, :not_enough_args}
+  def validate([], _), do: {:validation_failure, :not_enough_args}
   def validate([_], _), do: :ok
-  def validate(_, _),   do: {:validation_failure, :too_many_args}
+  def validate(_, _), do: {:validation_failure, :too_many_args}
 
   def run([queue], %{vhost: vhost, node: node_name}) do
     :rpc.call(node_name,

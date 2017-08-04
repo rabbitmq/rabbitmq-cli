@@ -13,11 +13,12 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Diagnostics.Commands.MemoryBreakdownCommand do
+  @behaviour RabbitMQ.CLI.CommandBehaviour
+
   alias RabbitMQ.CLI.InformationUnit, as: IU
 
-  @behaviour RabbitMQ.CLI.CommandBehaviour
+  def requires_rabbit_app_running?, do: false
 
   def merge_defaults(args, opts) do
     {args, Map.merge(%{unit: "gb"}, opts)}
@@ -75,11 +76,9 @@ defmodule RabbitMQ.CLI.Diagnostics.Commands.MemoryBreakdownCommand do
 
   def formatter(), do: Formatter
 
-
   #
   # Implementation
   #
-
   defp compute_relative_values(all_pairs) do
     pairs = Keyword.delete(all_pairs, :total)
     total = Enum.reduce(pairs, 0, fn({_, bytes}, acc) -> acc + bytes end)

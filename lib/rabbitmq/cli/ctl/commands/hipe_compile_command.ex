@@ -14,14 +14,12 @@
 ## Copyright (c) 2016-2017 Pivotal Software, Inc.  All rights reserved.
 
 defmodule RabbitMQ.CLI.Ctl.Commands.HipeCompileCommand do
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
+  alias RabbitMQ.CLI.Core.Validators, as: Validators
 
-  #
-  # API
-  #
+  def requires_rabbit_app_running?, do: false
 
   def merge_defaults(args, opts) do
     {args, opts}
@@ -34,13 +32,13 @@ defmodule RabbitMQ.CLI.Ctl.Commands.HipeCompileCommand do
   def validate([], _),  do: {:validation_failure, :not_enough_args}
   def validate([target_dir], opts) do
     :ok
-    |> Helpers.validate_step(fn() ->
+    |> Validators.validate_step(fn() ->
       case acceptable_path?(target_dir) do
         true  -> :ok
         false -> {:error, {:bad_argument, "Target directory path cannot be blank"}}
       end
     end)
-    |> Helpers.validate_step(fn() ->
+    |> Validators.validate_step(fn() ->
       case File.dir?(target_dir) do
         true  -> :ok
         false ->
@@ -51,7 +49,7 @@ defmodule RabbitMQ.CLI.Ctl.Commands.HipeCompileCommand do
           end
       end
     end)
-    |> Helpers.validate_step(fn() -> Helpers.require_rabbit(opts) end)
+    |> Validators.validate_step(fn() -> Helpers.require_rabbit(opts) end)
   end
   def validate(_, _),   do: {:validation_failure, :too_many_args}
 

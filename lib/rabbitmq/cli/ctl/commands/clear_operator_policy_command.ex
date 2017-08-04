@@ -15,11 +15,10 @@
 
 
 defmodule RabbitMQ.CLI.Ctl.Commands.ClearOperatorPolicyCommand do
-
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
+
   def merge_defaults(args, opts) do
     {args, Map.merge(%{vhost: "/"}, opts)}
   end
@@ -38,7 +37,6 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClearOperatorPolicyCommand do
   end
 
   def usage, do: "clear_operator_policy [-p <vhost>] <key>"
-
 
   def banner([key], %{vhost: vhost}) do
     "Clearing operator policy \"#{key}\" on vhost \"#{vhost}\" ..."

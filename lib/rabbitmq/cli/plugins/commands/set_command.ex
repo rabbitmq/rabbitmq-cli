@@ -13,16 +13,18 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Plugins.Commands.SetCommand do
+  @behaviour RabbitMQ.CLI.CommandBehaviour
 
   alias RabbitMQ.CLI.Plugins.Helpers, as: PluginHelpers
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
   alias RabbitMQ.CLI.Core.ExitCodes, as: ExitCodes
 
-  @behaviour RabbitMQ.CLI.CommandBehaviour
-
   def formatter(), do: RabbitMQ.CLI.Formatters.Plugins
+
+  def requires_rabbit_app_running?(%{online: online, offline: offline}) do
+    PluginHelpers.requires_rabbit_app_running?(online, offline)
+  end
 
   def merge_defaults(args, opts) do
     {args, Map.merge(%{online: false, offline: false}, opts)}
@@ -58,7 +60,6 @@ defmodule RabbitMQ.CLI.Plugins.Commands.SetCommand do
       ["Enabling plugins on node #{node_name}:" | plugins]
   end
 
-
   def run(plugin_names, opts) do
     plugins = for s <- plugin_names, do: String.to_atom(s)
     case PluginHelpers.validate_plugins(plugins, opts) do
@@ -71,17 +72,13 @@ defmodule RabbitMQ.CLI.Plugins.Commands.SetCommand do
     %{online: online, offline: offline} = opts
 
     all = PluginHelpers.list(opts)
-    mode = case {online, offline} do
-      {true, false}  -> :online;
-      {false, true}  -> :offline;
-      {false, false} -> :online
-    end
+    mode = PluginHelpers.get_mode(online, offline)
 
     case PluginHelpers.set_enabled_plugins(plugins, opts) do
       {:ok, enabled_plugins} ->
         {:stream, Stream.concat(
             [[:rabbit_plugins.strictly_plugins(enabled_plugins, all)],
-             RabbitMQ.CLI.Core.Helpers.defer(
+             Helpers.defer(
                fn() ->
                  map = PluginHelpers.update_enabled_plugins(enabled_plugins, mode, node_name, opts)
                  filter_strictly_plugins(map, all, [:set, :started, :stopped])
@@ -110,5 +107,4 @@ defmodule RabbitMQ.CLI.Plugins.Commands.SetCommand do
   def output({:stream, stream}, _opts) do
     {:stream, stream}
   end
-
 end

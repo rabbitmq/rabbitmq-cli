@@ -13,16 +13,22 @@
 ## The Initial Developer of the Original Code is Pivotal Software, Inc.
 ## Copyright (c) 2016-2017 Pivotal Software, Inc.  All rights reserved.
 
-alias RabbitMQ.CLI.Ctl.Validators, as: Validators
-alias RabbitMQ.CLI.Core.Distribution,   as: Distribution
-
 defmodule RabbitMQ.CLI.Ctl.Commands.ForgetClusterNodeCommand do
-  import Rabbitmq.Atom.Coerce
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  import Rabbitmq.Atom.Coerce
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
+  alias RabbitMQ.CLI.Core.Validators, as: Validators
+  alias RabbitMQ.CLI.Core.Distribution, as: Distribution
 
   def switches(), do: [offline: :boolean]
+
+  def requires_rabbit_app_running?(%{offline: true}) do
+    false
+  end
+  def requires_rabbit_app_running?(%{offline: false}) do
+    true
+  end
 
   def merge_defaults(args, opts) do
     {args, Map.merge(%{offline: false}, opts)}
@@ -43,7 +49,7 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ForgetClusterNodeCommand do
   def run([node_to_remove], %{node: node_name, offline: true} = opts) do
     Stream.concat([
       become(node_name, opts),
-      RabbitMQ.CLI.Core.Helpers.defer(fn() ->
+      Helpers.defer(fn() ->
         :rabbit_event.start_link()
         :rabbit_mnesia.forget_cluster_node(to_atom(node_to_remove), true)
       end)])
@@ -63,7 +69,6 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ForgetClusterNodeCommand do
     "Removing node #{node_to_remove} from the cluster"
   end
 
-
   defp become(node_name, opts) do
     :error_logger.tty(false)
     case :net_adm.ping(node_name) do
@@ -71,11 +76,11 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ForgetClusterNodeCommand do
         :pang -> :ok = :net_kernel.stop()
                  Stream.concat([
                    ["  * Impersonating node: #{node_name}..."],
-                   RabbitMQ.CLI.Core.Helpers.defer(fn() ->
+                   Helpers.defer(fn() ->
                      {:ok, _} = Distribution.start_as(node_name, opts)
                      " done"
                    end),
-                   RabbitMQ.CLI.Core.Helpers.defer(fn() ->
+                   Helpers.defer(fn() ->
                      dir = :mnesia.system_info(:directory)
                      "  * Mnesia directory: #{dir}..."
                    end)])

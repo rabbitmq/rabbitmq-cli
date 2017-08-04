@@ -15,11 +15,10 @@
 
 
 defmodule RabbitMQ.CLI.Ctl.Commands.ClearGlobalParameterCommand do
-
-  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
+  alias RabbitMQ.CLI.Core.Helpers, as: Helpers
+
   def merge_defaults(args, opts) do
     {args, opts}
   end

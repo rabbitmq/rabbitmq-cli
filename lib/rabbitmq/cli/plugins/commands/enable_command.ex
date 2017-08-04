@@ -13,14 +13,12 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
+  @behaviour RabbitMQ.CLI.CommandBehaviour
 
   alias RabbitMQ.CLI.Plugins.Helpers, as: PluginHelpers
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-  alias RabbitMQ.CLI.Core.ExitCodes, as: ExitCodes
-
-  @behaviour RabbitMQ.CLI.CommandBehaviour
+  alias RabbitMQ.CLI.Core.Validators, as: Validators
 
   def formatter(), do: RabbitMQ.CLI.Formatters.Plugins
 
@@ -31,6 +29,10 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
   def switches(), do: [online: :boolean,
                        offline: :boolean,
                        all: :boolean]
+
+  def requires_rabbit_app_running?(%{online: online, offline: offline}) do
+    PluginHelpers.requires_rabbit_app_running?(online, offline)
+  end
 
   def validate([], %{all: false}) do
     {:validation_failure, :not_enough_arguments}
@@ -45,9 +47,9 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
 
   def validate(_plugins, opts) do
     :ok
-    |> Helpers.validate_step(fn() -> Helpers.require_rabbit_and_plugins(opts) end)
-    |> Helpers.validate_step(fn() -> PluginHelpers.enabled_plugins_file(opts) end)
-    |> Helpers.validate_step(fn() -> Helpers.plugins_dir(opts) end)
+    |> Validators.validate_step(fn() -> Helpers.require_rabbit_and_plugins(opts) end)
+    |> Validators.validate_step(fn() -> PluginHelpers.enabled_plugins_file(opts) end)
+    |> Validators.validate_step(fn() -> Helpers.plugins_dir(opts) end)
   end
 
   def usage, do: "enable <plugin>|--all [--offline] [--online]"
@@ -58,7 +60,6 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
   def banner(plugins, %{node: node_name}) do
     ["Enabling plugins on node #{node_name}:" | plugins]
   end
-
 
   def run(plugin_names, %{all: all_flag} = opts) do
     plugins = case all_flag do
@@ -84,12 +85,7 @@ defmodule RabbitMQ.CLI.Plugins.Commands.EnableCommand do
       MapSet.new(enabled),
       MapSet.difference(MapSet.new(plugins), enabled_implicitly))
 
-    mode = case {online, offline} do
-             {true, false}  -> :online;
-             {false, true}  -> :offline;
-             # fallback to online mode
-             {false, false} -> :online
-           end
+    mode = PluginHelpers.get_mode(online, offline)
 
     case PluginHelpers.set_enabled_plugins(MapSet.to_list(plugins_to_set), opts) do
       {:ok, enabled_plugins} ->

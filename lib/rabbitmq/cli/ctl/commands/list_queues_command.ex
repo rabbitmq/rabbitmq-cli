@@ -13,17 +13,16 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.ListQueuesCommand do
+  @behaviour RabbitMQ.CLI.CommandBehaviour
   require RabbitMQ.CLI.Ctl.InfoKeys
   require RabbitMQ.CLI.Ctl.RpcStream
+
+  use RabbitMQ.CLI.DefaultOutput
 
   alias RabbitMQ.CLI.Ctl.InfoKeys, as: InfoKeys
   alias RabbitMQ.CLI.Ctl.RpcStream, as: RpcStream
   alias RabbitMQ.CLI.Core.Helpers, as: Helpers
-
-  @behaviour RabbitMQ.CLI.CommandBehaviour
-  use RabbitMQ.CLI.DefaultOutput
 
   def formatter(), do: RabbitMQ.CLI.Formatters.Table
 

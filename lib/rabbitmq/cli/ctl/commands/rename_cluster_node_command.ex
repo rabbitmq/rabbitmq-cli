@@ -13,17 +13,16 @@
 ## The Initial Developer of the Original Code is Pivotal Software, Inc.
 ## Copyright (c) 2016-2017 Pivotal Software, Inc.  All rights reserved.
 
-require Integer
-
-alias RabbitMQ.CLI.Ctl.Validators, as: Validators
-
 defmodule RabbitMQ.CLI.Ctl.Commands.RenameClusterNodeCommand do
-  import Rabbitmq.Atom.Coerce
-
   @behaviour RabbitMQ.CLI.CommandBehaviour
+  import Rabbitmq.Atom.Coerce
+  require Integer
   use RabbitMQ.CLI.DefaultOutput
+  alias RabbitMQ.CLI.Core.Validators, as: Validators
 
   def switches(), do: [mnesia_dir: :string, rabbitmq_home: :string]
+
+  def requires_rabbit_app_running?, do: false
 
   def merge_defaults(args, opts), do: {args, opts}
 

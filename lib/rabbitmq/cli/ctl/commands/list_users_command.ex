@@ -35,5 +35,4 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ListUsersCommand do
   def usage, do: "list_users"
 
   def banner(_,_), do: "Listing users ..."
-
 end

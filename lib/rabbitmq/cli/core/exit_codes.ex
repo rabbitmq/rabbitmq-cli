@@ -40,6 +40,7 @@ defmodule RabbitMQ.CLI.Core.ExitCodes do
   def exit_code_for({:validation_failure, :bad_argument}),         do: exit_dataerr()
   def exit_code_for({:validation_failure, :eperm}),                do: exit_dataerr()
   def exit_code_for({:validation_failure, {:bad_option, _}}),      do: exit_usage()
+  def exit_code_for({:validation_failure, {:rabbit_app_not_running, _}}), do: exit_tempfail()
   def exit_code_for({:validation_failure, _}),                     do: exit_usage()
   # a special case of bad_argument
   def exit_code_for({:no_such_vhost, _}),       do: exit_dataerr()

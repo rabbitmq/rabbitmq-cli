@@ -13,11 +13,9 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
-
 defmodule RabbitMQ.CLI.Ctl.Commands.StartAppCommand do
   @behaviour RabbitMQ.CLI.CommandBehaviour
   use RabbitMQ.CLI.DefaultOutput
-
 
   def merge_defaults(args, opts), do: {args, opts}
   def validate([_|_] = args, _) when length(args) > 0, do: {:validation_failure, :too_many_args}
@@ -29,6 +27,7 @@ defmodule RabbitMQ.CLI.Ctl.Commands.StartAppCommand do
 
   def usage, do: "start_app"
 
-
   def banner(_, %{node: node_name}), do: "Starting node #{node_name} ..."
+
+  def requires_rabbit_app_running?, do: false
 end
