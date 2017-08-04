@@ -60,4 +60,13 @@ defmodule RabbitMQ.CLI.Core.Validators do
       {:error, err} -> {:validation_failure, err}
     end
   end
+
+  def rabbit_app_running?(%{node: node, timeout: timeout}) do
+    case :rabbit_misc.rpc_call(node, :rabbit, :is_running, [], timeout) do
+      true -> :ok
+      false ->
+        {:validation_failure, {:rabbit_app_not_running, node}}
+      error -> error
+    end
+  end
 end

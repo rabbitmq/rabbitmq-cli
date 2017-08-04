@@ -183,16 +183,6 @@ defmodule RabbitMQ.CLI.Core.Helpers do
     :net_adm.ping(node) == :pong
   end
 
-  def rabbit_app_running?(%{node: node, timeout: timeout}) do
-    case :rabbit_misc.rpc_call(node, :rabbit, :is_running, [], timeout) do
-      true -> :ok
-      false ->
-        {:validation_failure, {:rabbit_app_not_running, node}}
-      error ->
-        error
-    end
-  end
-
   # Convert function to stream
   def defer(fun) do
     Stream.iterate(:ok, fn(_) -> fun.() end)
