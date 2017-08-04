@@ -189,7 +189,7 @@ defmodule RabbitMQ.CLI.Core.Helpers do
       false ->
         {:validation_failure, {:rabbit_app_not_running, node}}
       error ->
-        {:validation_failure, {error, node}}
+        error
     end
   end
 
