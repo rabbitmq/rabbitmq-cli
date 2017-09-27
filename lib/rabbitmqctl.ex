@@ -269,7 +269,7 @@ defmodule RabbitMQCtl do
   defp validation_error_output(err_detail, base_error, command, options) do
     usage = HelpCommand.base_usage(command, options)
     message = base_error <> "\n" <> usage
-    {:error, ExitCodes.exit_code_for({:validation_failure, err_detail}), message}
+    {:error, ExitCodes.exit_code_for(command, {:validation_failure, err_detail}), message}
   end
 
   defp format_validation_error(:not_enough_args), do: "not enough arguments."
@@ -292,53 +292,53 @@ defmodule RabbitMQCtl do
     exit({:shutdown, code})
   end
 
-  defp format_error({:error, {:badrpc_multi, :nodedown, [node | _]} = result}, opts, _) do
+  defp format_error({:error, {:badrpc_multi, :nodedown, [node | _]} = result}, opts, command) do
     diagnostics = get_node_diagnostics(node)
-    {:error, ExitCodes.exit_code_for(result),
+    {:error, ExitCodes.exit_code_for(command, result),
      badrpc_error_message_header(node, opts) <> diagnostics}
   end
   defp format_error({:error, {:badrpc_multi, :timeout, [node | _]} = result}, opts, module) do
     op = CommandModules.module_to_command(module)
-    {:error, ExitCodes.exit_code_for(result),
+    {:error, ExitCodes.exit_code_for(op, result),
      "Error: operation #{op} on node #{node} timed out. Timeout value used: #{opts[:timeout]}"}
   end
-  defp format_error({:error, {:badrpc, :nodedown} = result}, opts, _) do
+  defp format_error({:error, {:badrpc, :nodedown} = result}, opts, command) do
     diagnostics = get_node_diagnostics(opts[:node])
-    {:error, ExitCodes.exit_code_for(result),
+    {:error, ExitCodes.exit_code_for(command, result),
      badrpc_error_message_header(opts[:node], opts) <> diagnostics}
   end
   defp format_error({:error, {:badrpc, :timeout} = result}, opts, module) do
     op = CommandModules.module_to_command(module)
-    {:error, ExitCodes.exit_code_for(result),
+    {:error, ExitCodes.exit_code_for(op, result),
      "Error: operation #{op} on node #{opts[:node]} timed out. Timeout value used: #{opts[:timeout]}"}
   end
   defp format_error({:error, {:badrpc, {:timeout, to}} = result}, opts, module) do
     op = CommandModules.module_to_command(module)
-    {:error, ExitCodes.exit_code_for(result),
+    {:error, ExitCodes.exit_code_for(op, result),
      "Error: operation #{op} on node #{opts[:node]} timed out. Timeout value used: #{to}"}
   end
   defp format_error({:error, {:badrpc, {:timeout, to, warning}}}, opts, module) do
     op = CommandModules.module_to_command(module)
-    {:error, ExitCodes.exit_code_for({:timeout, to}),
+    {:error, ExitCodes.exit_code_for(op, {:timeout, to}),
      "Error: operation #{op} on node #{opts[:node]} timed out. Timeout value used: #{to}. #{warning}"}
   end
-  defp format_error({:error, {:no_such_vhost, vhost} = result}, _opts, _) do
-    {:error, ExitCodes.exit_code_for(result),
+  defp format_error({:error, {:no_such_vhost, vhost} = result}, _opts, command) do
+    {:error, ExitCodes.exit_code_for(command, result),
      "Virtual host '#{vhost}' does not exist"}
   end
   defp format_error({:error, {:timeout, to} = result}, opts, module) do
     op = CommandModules.module_to_command(module)
-    {:error, ExitCodes.exit_code_for(result),
+    {:error, ExitCodes.exit_code_for(op, result),
      "Error: operation #{op} on node #{opts[:node]} timed out. Timeout value used: #{to}"}
   end
   defp format_error({:error, :timeout = result}, opts, module) do
     op = CommandModules.module_to_command(module)
-    {:error, ExitCodes.exit_code_for(result),
+    {:error, ExitCodes.exit_code_for(op, result),
      "Error: operation #{op} on node #{opts[:node]} timed out. Timeout value used: #{opts[:timeout]}"}
   end
-  defp format_error({:error, err} = result, _, _) do
+  defp format_error({:error, err} = result, _, command) do
     string_err = Helpers.string_or_inspect(err)
-    {:error, ExitCodes.exit_code_for(result), "Error:\n#{string_err}"}
+    {:error, ExitCodes.exit_code_for(command, result), "Error:\n#{string_err}"}
   end
 
   defp get_node_diagnostics(nil) do

@@ -22,9 +22,7 @@ defmodule RabbitMQCtlTest do
 
   setup_all do
     RabbitMQ.CLI.Core.Distribution.start()
-
     set_scope(:all)
-
     :ok
   end
 
