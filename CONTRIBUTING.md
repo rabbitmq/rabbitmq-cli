@@ -48,15 +48,14 @@ you can simply run `make tests` within the project root directory.
 To run a single test case, use `make test` like so:
 
 ```
-make test TEST_FILE=test/help_command_test.exs
+make TEST_FILE=test/help_command_test.exs test
 ```
 
 And if you want to run in verbose mode, set the `V` make variable:
 
 ```
-make test TEST_FILE=test/help_command_test.exs V=1
+make TEST_FILE=test/help_command_test.exs V=1 test
 ```
-
 
 NOTE: You may see the following message several times:
 
