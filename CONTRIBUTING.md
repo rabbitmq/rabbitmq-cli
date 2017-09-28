@@ -57,7 +57,6 @@ And if you want to run in verbose mode, set the `V` make variable:
 make test TEST_FILE=test/help_command_test.exs V=1
 ```
 
-
 NOTE: You may see the following message several times:
 
 ```

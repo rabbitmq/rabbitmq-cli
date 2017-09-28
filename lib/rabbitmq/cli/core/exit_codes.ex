@@ -14,6 +14,8 @@
 ## Copyright (c) 2007-2017 Pivotal Software, Inc.  All rights reserved.
 
 defmodule RabbitMQ.CLI.Core.ExitCodes do
+  alias RabbitMQ.CLI.Ctl.Commands.StopCommand, as: StopCommand
+
   @exit_ok 0
   @exit_usage 64
   @exit_dataerr 65
@@ -32,25 +34,33 @@ defmodule RabbitMQ.CLI.Core.ExitCodes do
   def exit_tempfail, do: @exit_tempfail
   def exit_config, do: @exit_config
 
-  def exit_code_for({:validation_failure, :not_enough_args}),      do: exit_usage()
-  def exit_code_for({:validation_failure, :too_many_args}),        do: exit_usage()
-  def exit_code_for({:validation_failure, {:not_enough_args, _}}), do: exit_usage()
-  def exit_code_for({:validation_failure, {:too_many_args, _}}),   do: exit_usage()
-  def exit_code_for({:validation_failure, {:bad_argument, _}}),    do: exit_dataerr()
-  def exit_code_for({:validation_failure, :bad_argument}),         do: exit_dataerr()
-  def exit_code_for({:validation_failure, :eperm}),                do: exit_dataerr()
-  def exit_code_for({:validation_failure, {:bad_option, _}}),      do: exit_usage()
-  def exit_code_for({:validation_failure, _}),                     do: exit_usage()
+  def exit_code_for(_cmd, {:validation_failure, :not_enough_args}),      do: exit_usage()
+  def exit_code_for(_cmd, {:validation_failure, :too_many_args}),        do: exit_usage()
+  def exit_code_for(_cmd, {:validation_failure, {:not_enough_args, _}}), do: exit_usage()
+  def exit_code_for(_cmd, {:validation_failure, {:too_many_args, _}}),   do: exit_usage()
+  def exit_code_for(_cmd, {:validation_failure, {:bad_argument, _}}),    do: exit_dataerr()
+  def exit_code_for(_cmd, {:validation_failure, :bad_argument}),         do: exit_dataerr()
+  def exit_code_for(_cmd, {:validation_failure, :eperm}),                do: exit_dataerr()
+  def exit_code_for(_cmd, {:validation_failure, {:bad_option, _}}),      do: exit_usage()
+  def exit_code_for(_cmd, {:validation_failure, _}),                     do: exit_usage()
   # a special case of bad_argument
-  def exit_code_for({:no_such_vhost, _}),       do: exit_dataerr()
-  def exit_code_for({:badrpc_multi, :timeout, _}),       do: exit_tempfail()
-  def exit_code_for({:badrpc, :timeout}),       do: exit_tempfail()
-  def exit_code_for({:badrpc, {:timeout, _}}),  do: exit_tempfail()
-  def exit_code_for({:badrpc, {:timeout, _, _}}),  do: exit_tempfail()
-  def exit_code_for(:timeout),                  do: exit_tempfail()
-  def exit_code_for({:timeout, _}),             do: exit_tempfail()
-  def exit_code_for({:badrpc_multi, :nodedown, _}),      do: exit_unavailable()
-  def exit_code_for({:badrpc, :nodedown}),      do: exit_unavailable()
-  def exit_code_for({:error, _}),               do: exit_software()
 
+  ## Note: we return exit_ok() for stop commands when the node is down
+  ## to prevent issues like systemd interpreting the stop command as
+  ## failing if exit_unavailable were to be returned
+  ## rabbitmq/rabbitmq-server#1362
+  ##
+  def exit_code_for(StopCommand, {:badrpc_multi, :nodedown, _}), do: exit_ok()
+  def exit_code_for(_cmd, {:badrpc_multi, :nodedown, _}),        do: exit_unavailable()
+  def exit_code_for(StopCommand, {:badrpc, :nodedown}),          do: exit_ok()
+  def exit_code_for(_cmd, {:badrpc, :nodedown}),                 do: exit_unavailable()
+
+  def exit_code_for(_cmd, {:no_such_vhost, _}),          do: exit_dataerr()
+  def exit_code_for(_cmd, {:badrpc_multi, :timeout, _}), do: exit_tempfail()
+  def exit_code_for(_cmd, {:badrpc, :timeout}),          do: exit_tempfail()
+  def exit_code_for(_cmd, {:badrpc, {:timeout, _}}),     do: exit_tempfail()
+  def exit_code_for(_cmd, {:badrpc, {:timeout, _, _}}),  do: exit_tempfail()
+  def exit_code_for(_cmd, :timeout),                     do: exit_tempfail()
+  def exit_code_for(_cmd, {:timeout, _}),                do: exit_tempfail()
+  def exit_code_for(_cmd, {:error, _}),                  do: exit_software()
 end

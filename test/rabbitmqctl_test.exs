@@ -20,16 +20,21 @@ defmodule RabbitMQCtlTest do
   import RabbitMQ.CLI.Core.ExitCodes
   import TestHelper
 
-
   setup_all do
     RabbitMQ.CLI.Core.Distribution.start()
-
     set_scope(:all)
-
     :ok
   end
 
+## ------------------------ Exit Codes ------------------------------------
+
+  test "stop on a bad connection exits OK" do
+    command = ["stop", "-n", "sandwich@croque-monsieur"]
+    error_check(command, exit_ok())
+  end
+
 ## ------------------------ Error Messages ------------------------------------
+
   test "print error message on a bad connection" do
     command = ["status", "-n", "sandwich@pastrami"]
     assert capture_io(:stderr, fn ->
@@ -178,7 +183,6 @@ defmodule RabbitMQCtlTest do
       error_check(cmd, exit_ok())
     end) == out
   end
-
 
 ## ------------------------- Error formatting ---------------------------------
 
