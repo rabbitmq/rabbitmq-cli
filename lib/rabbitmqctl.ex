@@ -67,7 +67,6 @@ defmodule RabbitMQCtl do
       _ ->
         options = parsed_options |> merge_all_defaults |> normalize_options
         {arguments, options} = command.merge_defaults(arguments, options)
-
         with_distribution(options, fn() ->
           # The code below implements a tiny decision tree that has
           # to do with CLI argument and environment state validation.

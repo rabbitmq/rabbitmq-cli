@@ -69,6 +69,7 @@ defmodule RabbitMQ.CLI.Core.Distribution do
 
   defp start(node_name_type, attempts, _last_err) do
     candidate = generate_cli_node_name(node_name_type)
+    hide_node(candidate)
     case start_with_epmd(candidate, node_name_type) do
       {:ok, _} -> :ok
       {:error, {:already_started, pid}}      -> {:ok, pid};
@@ -76,6 +77,19 @@ defmodule RabbitMQ.CLI.Core.Distribution do
       {:error, reason} ->
         start(node_name_type, attempts - 1, reason)
     end
+  end
+
+  defp hide_node(node_name) do
+    env = :application_controller.prep_config_change(),
+    :application.set_env(:kernel, :global_groups,
+                         [{:cli_hidden, :hidden, [node_name]}]),
+    :application_controller.config_change(env)
+  end
+
+  defp update_kernel(name, val) do
+    env = :application_controller.prep_config_change(),
+    :application.set_env(:kernel, name, val),
+    :application_controller.config_change(env)
   end
 
   defp generate_cli_node_name(node_name_type) do

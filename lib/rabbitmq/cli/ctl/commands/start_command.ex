@@ -80,11 +80,20 @@ defmodule RabbitMQ.CLI.Ctl.Commands.StartCommand do
 
   defp start_distribution(opts) do
     :ok = :net_kernel.stop()
+    configure_kernel()
     RabbitMQ.CLI.Core.Distribution.start_as(opts[:node], opts)
   end
 
   def usage, do: "start"
 
   def banner(_, _), do: "Starting an embedded RabbitMQ server"
+
+  defp configure_kernel() do
+    env = :application_controller.prep_config_change(),
+    :application.set_env(:kernel, :inet_default_connect_options, [{:nodelay,true}])
+    :application.set_env(:kernel, :inet_dist_listen_min, System.get_env("RABBITMQ_DIST_PORT"))
+    :application.set_env(:kernel, :inet_dist_listen_max, System.get_env("RABBITMQ_DIST_PORT"))
+    :application_controller.config_change(env)
+  end
 
 end

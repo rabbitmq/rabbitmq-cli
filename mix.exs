@@ -28,12 +28,7 @@ defmodule RabbitMQCtl.MixfileBase do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       escript: [main_module: RabbitMQCtl,
-                emu_args: " -hidden +W w +K true +A 64 +P 1048576 +t 5000000 " <>
-                          " +stbt db +zdbbl 32000 -sasl errlog_type error " <>
-                          # " -kernel inet_default_connect_options \"[{nodelay,true}]\" "<>
-                          " -os_mon start_cpu_sup false "<>
-                          " -os_mon start_disksup false "<>
-                          " -os_mon start_memsup false ",
+                emu_args: "+W w +A 64 +P 1048576 +t 5000000 +stbt db +zdbbl 128000 +K true +B i",
                 path: "escript/rabbitmqctl"],
       deps_path: deps_dir,
       deps: deps(deps_dir),
@@ -124,25 +119,18 @@ defmodule RabbitMQCtl.MixfileBase do
         override: true
       },
       {
-        :jsx,
-        path: Path.join(deps_dir, "jsx"),
-        compile: "true",
-        override: true
-      },
-
-      {
         :lager,
         path: Path.join(deps_dir, "lager"),
         compile: "true",
         override: true
       },
-
       {
         :ranch_proxy_protocol,
         path: Path.join(deps_dir, "ranch_proxy_protocol"),
         compile: "true",
         override: true
       },
+      {:jsx, "~> 2.8.2"},
       {:amqp, "~> 0.2.2", only: :test},
       {:temp, "~> 0.4", only: :test},
       {:json, "~> 1.0.0"},

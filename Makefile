@@ -1,6 +1,7 @@
 PROJECT = rabbitmq_cli
 
-BUILD_DEPS = rabbit_common rabbit
+BUILD_DEPS = rabbit_common
+DEPS = rabbit
 TEST_DEPS = amqp_client
 
 DEP_EARLY_PLUGINS = rabbit_common/mk/rabbitmq-early-plugin.mk
@@ -111,6 +112,9 @@ clean:: clean-mix
 clean-mix:
 	$(gen_verbose) rm -f $(ESCRIPTS)
 	$(verbose) echo y | mix clean
+
+distclean::
+	$(gen_verbose) rm -rf _build
 
 repl:
 	$(verbose) iex -S mix

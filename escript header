@@ -1,0 +1,46 @@
+Default header:
+
+#! /usr/bin/env escript
+%%
+%%! -escript main rabbitmqctl_escript +W w +A 64 +P 1048576 +t 5000000 +stbt db +zdbbl 128000 +K true +B i
+
+RabbitMQ erl args:
++W w +A 64 +P 1048576 +t 5000000 +stbt db +zdbbl 128000 +K true +B i
+
+server: -kernel ...
+
+Overrides:
+RABBITMQ_ALLOW_INPUT is empty -> '-noinput'
++A ${RABBITMQ_IO_THREAD_POOL_SIZE}
++stbt $RABBITMQ_SCHEDULER_BIND_TYPE
++zdbbl $RABBITMQ_DISTRIBUTION_BUFFER_SIZE
+RABBITMQ_IGNORE_SIGINT == false -> '+Bc'
+RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS
+RABBITMQ_SERVER_START_ARGS
+
+Runtime args:
+node name + type
+RABBITMQ_CONFIG_FILE=$RABBITMQ_CONFIG_FILE \
+ERL_MAX_ETS_TABLES=$ERL_MAX_ETS_TABLES \
+ERL_CRASH_DUMP=$ERL_CRASH_DUMP \
+start_sasl/start_clean
+config options
+
+-kernel inet_default_connect_options "[{nodelay,true}]"
+-kernel inet_dist_listen_min ${RABBITMQ_DIST_PORT} -kernel inet_dist_listen_max ${RABBITMQ_DIST_PORT}
+
+RABBITMQ_LISTEN_ARG
+
+-sasl errlog_type error \
+-sasl sasl_error_logger "$SASL_ERROR_LOGGER" \
+-rabbit lager_log_root "\"$RABBITMQ_LOG_BASE\"" \
+-rabbit lager_default_file "$RABBIT_LAGER_HANDLER" \
+-rabbit lager_upgrade_file "$RABBITMQ_LAGER_HANDLER_UPGRADE" \
+-rabbit enabled_plugins_file "\"$RABBITMQ_ENABLED_PLUGINS_FILE\"" \
+-rabbit plugins_dir "\"$RABBITMQ_PLUGINS_DIR\"" \
+-rabbit plugins_expand_dir "\"$RABBITMQ_PLUGINS_EXPAND_DIR\"" \
+-os_mon start_cpu_sup false \
+-os_mon start_disksup false \
+-os_mon start_memsup false \
+-mnesia dir "\"${RABBITMQ_MNESIA_DIR}\"" \
+
