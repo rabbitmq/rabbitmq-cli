@@ -26,8 +26,8 @@ ERL_CRASH_DUMP=$ERL_CRASH_DUMP \
 start_sasl/start_clean
 config options
 
--kernel inet_default_connect_options "[{nodelay,true}]"
--kernel inet_dist_listen_min ${RABBITMQ_DIST_PORT} -kernel inet_dist_listen_max ${RABBITMQ_DIST_PORT}
+! -kernel inet_default_connect_options "[{nodelay,true}]"
+!-kernel inet_dist_listen_min ${RABBITMQ_DIST_PORT} -kernel inet_dist_listen_max ${RABBITMQ_DIST_PORT}
 
 RABBITMQ_LISTEN_ARG
 

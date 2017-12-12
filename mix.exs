@@ -28,7 +28,7 @@ defmodule RabbitMQCtl.MixfileBase do
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       escript: [main_module: RabbitMQCtl,
-                emu_args: "+W w +A 64 +P 1048576 +t 5000000 +stbt db +zdbbl 128000 +K true +B i",
+                emu_args: "+W w +A 64 +P 1048576 +t 5000000 +stbt db +zdbbl 128000 +K true +B d",
                 path: "escript/rabbitmqctl"],
       deps_path: deps_dir,
       deps: deps(deps_dir),
@@ -102,6 +102,12 @@ defmodule RabbitMQCtl.MixfileBase do
       {
         :rabbit,
         path: Path.join(deps_dir, "rabbit"),
+        compile: "true",
+        override: true
+      },
+      {
+        :recon,
+        path: Path.join(deps_dir, "recon"),
         compile: "true",
         override: true
       },

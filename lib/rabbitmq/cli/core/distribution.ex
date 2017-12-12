@@ -80,15 +80,15 @@ defmodule RabbitMQ.CLI.Core.Distribution do
   end
 
   defp hide_node(node_name) do
-    env = :application_controller.prep_config_change(),
+    env = :application_controller.prep_config_change()
     :application.set_env(:kernel, :global_groups,
-                         [{:cli_hidden, :hidden, [node_name]}]),
+                         [{:cli_hidden, :hidden, [node_name]}])
     :application_controller.config_change(env)
   end
 
   defp update_kernel(name, val) do
-    env = :application_controller.prep_config_change(),
-    :application.set_env(:kernel, name, val),
+    env = :application_controller.prep_config_change()
+    :application.set_env(:kernel, name, val)
     :application_controller.config_change(env)
   end
 
