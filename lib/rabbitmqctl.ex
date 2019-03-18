@@ -68,7 +68,8 @@ defmodule RabbitMQCtl do
   end
 
   def exec_command(unparsed_command, output_fun) do
-    {command, command_name, arguments, parsed_options, invalid} = Parser.parse(unparsed_command)
+    parser_result = Parser.parse(unparsed_command)
+    {command, command_name, arguments, parsed_options, invalid} = parser_result
 
     case {command, invalid} do
       {:no_command, _} ->
@@ -479,6 +480,12 @@ defmodule RabbitMQCtl do
     string_err = Helpers.string_or_inspect(err)
 
     {:error, ExitCodes.exit_code_for(result), "Error:\n#{string_err}"}
+  end
+
+  defp format_error(:undef = err, _, _) do
+    string_err = Helpers.string_or_inspect(err)
+
+    {:error, ExitCodes.exit_code_for(err), "Error:\n#{string_err}"}
   end
 
   defp get_node_diagnostics(nil) do

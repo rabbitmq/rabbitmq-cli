@@ -13,11 +13,10 @@
 ## The Initial Developer of the Original Code is GoPivotal, Inc.
 ## Copyright (c) 2007-2019 Pivotal Software, Inc.  All rights reserved.
 
-alias RabbitMQ.CLI.CommandBehaviour
-
 defmodule RabbitMQ.CLI.Ctl.Commands.HelpCommand do
+  alias RabbitMQ.CLI.CommandBehaviour
   alias RabbitMQ.CLI.Core.{CommandModules, Config, ExitCodes}
-  alias RabbitMQ.CLI.Core.CommandModules
+  alias RabbitMQ.CLI.Ctl.Commands.CommonOptionsCommand
 
   @behaviour RabbitMQ.CLI.CommandBehaviour
 
@@ -45,8 +44,11 @@ defmodule RabbitMQ.CLI.Ctl.Commands.HelpCommand do
     CommandModules.load(opts)
 
     case opts[:list_commands] do
-      true -> commands_description()
-      _ -> all_usage(opts)
+      true ->
+        commands_description()
+
+      _ ->
+        all_usage(opts)
     end
   end
 
@@ -60,12 +62,14 @@ defmodule RabbitMQ.CLI.Ctl.Commands.HelpCommand do
 
   def description(), do: "Displays usage information for a command"
 
-  def usage(), do: "help (<command> | [--list-commands])"
+  def usage(), do: "help (<command> | [--list-commands] [--common-options])"
 
   def usage_additional() do
-    "--list-commands: only output a list of discovered commands"
+    [
+      "--list-commands: only output a list of discovered commands",
+      "--common-options: display additional help for common options"
+    ]
   end
-
 
   #
   # Implementation
@@ -73,6 +77,7 @@ defmodule RabbitMQ.CLI.Ctl.Commands.HelpCommand do
 
   def all_usage(opts) do
     tool_name = program_name(opts)
+
     Enum.join(
       tool_usage(tool_name) ++
         [Enum.join(["Available commands:"] ++ commands_description(), "\n")] ++
@@ -82,11 +87,32 @@ defmodule RabbitMQ.CLI.Ctl.Commands.HelpCommand do
   end
 
   def command_usage(command, opts) do
-    Enum.join([base_usage(command, opts)] ++
-              command_description(command) ++
-              additional_usage(command) ++
-              general_options_usage(),
-              "\n\n") <> "\n"
+    common_options =
+      case {command, opts[:common_options]} do
+        {CommonOptionsCommand, _} ->
+          []
+
+        {_, true} ->
+          common_options_usage()
+
+        {_, _} ->
+          common_options_usage_short()
+      end
+
+    {command_description, additional_usage} =
+      case command do
+        CommonOptionsCommand ->
+          {[], []}
+
+        _ ->
+          {command_description(command), additional_usage(command)}
+      end
+
+    Enum.join(
+      [base_usage(command, opts)] ++ command_description ++ additional_usage ++ common_options,
+      "\n\n"
+    ) <>
+      "\n"
   end
 
   defp tool_usage(tool_name) do
@@ -122,43 +148,16 @@ defmodule RabbitMQ.CLI.Ctl.Commands.HelpCommand do
     str <> additional
   end
 
-  defp general_options_usage() do
+  defp common_options_usage_short() do
     [
-    "## General Options
+      "## Common Options
 
-The following options are accepted by most or all commands.
+Add the --common-options argument or run `rabbitmqctl help common_options' for information about common options"
+    ]
+  end
 
-short            | long          | description
------------------|---------------|--------------------------------
--?               | --help        | displays command help
--n <node>        | --node <node> | connect to node <node>
--l               | --longnames   | use long host names
--t               | --timeout <n> | for commands that support it, operation timeout in seconds
--q               | --quiet       | suppress informational messages
--s               | --silent      | suppress informational messages
-                                 | and table header row
--p               | --vhost       | for commands that are scoped to a virtual host,
-                 |               | virtual host to use
-                 | --formatter   | alternative result formatter to use
-                                 | if supported: json, pretty_table, table, csv",
-
-    "## Target Node Name
-
-Default node is \"rabbit@hostname\", where `hostname` is the target node's hostname.
-On a host named \"eng.example.com\", the node name of the RabbitMQ node will
-usually be rabbit@eng. Node name can be overridden using the RABBITMQ_NODENAME environment
-variable at node startup time. The output of hostname -s is usually
-the correct suffix to use after the \"@\" sign. See rabbitmq-server(8)
-and RabbitMQ configuration and networking guides to learn more.
-
-If target RabbitMQ node is configured to use long node names, the \"--longnames\"
-option must be specified.",
-
-    "## Disabling Options
-
-Most options have a corresponding \"long option\" i.e. \"-q\" or \"--quiet\".
-Long options for boolean values may be negated with the \"--no-\" prefix,
-i.e. \"--no-quiet\" or \"--no-table-headers\""]
+  defp common_options_usage() do
+    [CommonOptionsCommand.common_options_str()]
   end
 
   defp command_description(command) do
@@ -168,11 +167,14 @@ i.e. \"--no-quiet\" or \"--no-table-headers\""]
   defp additional_usage(command) do
     command_usage =
       case CommandBehaviour.usage_additional(command) do
-        list when is_list(list) -> list |> Enum.map(fn(ln) -> "#{ln}\n" end)
+        list when is_list(list) -> list |> Enum.map(fn ln -> "#{ln}\n" end)
         bin when is_binary(bin) -> ["#{bin}\n"]
       end
+
     case command_usage do
-      []    -> []
+      [] ->
+        []
+
       usage ->
         [flatten_string(["## Arguments and options\n" | usage], "")]
     end
@@ -189,54 +191,50 @@ i.e. \"--no-quiet\" or \"--no-table-headers\""]
   defp commands_description() do
     module_map = CommandModules.module_map()
 
-    pad_commands_to = Enum.reduce(module_map, 0,
-      fn({name, _}, longest) ->
+    pad_commands_to =
+      Enum.reduce(module_map, 0, fn {name, _}, longest ->
         name_length = String.length(name)
+
         case name_length > longest do
-          true  -> name_length
+          true -> name_length
           false -> longest
         end
       end)
 
     module_map
-    |> Enum.map(
-      fn({name, cmd}) ->
-        description = CommandBehaviour.description(cmd)
-        help_section = CommandBehaviour.help_section(cmd)
-        {name, {description, help_section}}
-      end)
-    |> Enum.group_by(fn({_, {_, help_section}}) -> help_section end)
-    |> Enum.sort_by(
-      fn({help_section, _}) ->
-        ## TODO: sort help sections
-        case help_section do
-          :other -> 100
-          {:plugin, _} -> 99
-          :help -> 1
-          :node_management -> 2
-          :cluster_management -> 3
-          :replication -> 3
-          :user_management -> 4
-          :access_control -> 5
-          :observability_and_health_checks -> 6
-          :parameters -> 7
-          :policies -> 8
-          :virtual_hosts -> 9
-          _ -> 98
-        end
-      end)
-    |> Enum.map(
-      fn({help_section, section_helps}) ->
-        [
-          "\n## " <> section_head(help_section) <> ":\n" |
-          Enum.sort(section_helps)
-          |> Enum.map(
-            fn({name, {description, _}}) ->
-              "   #{String.pad_trailing(name, pad_commands_to)}  #{description}"
-            end)
-        ]
-
-      end)
+    |> Enum.map(fn {name, cmd} ->
+      description = CommandBehaviour.description(cmd)
+      help_section = CommandBehaviour.help_section(cmd)
+      {name, {description, help_section}}
+    end)
+    |> Enum.group_by(fn {_, {_, help_section}} -> help_section end)
+    |> Enum.sort_by(fn {help_section, _} ->
+      ## TODO: sort help sections
+      case help_section do
+        :other -> 100
+        {:plugin, _} -> 99
+        :help -> 1
+        :node_management -> 2
+        :cluster_management -> 3
+        :replication -> 3
+        :user_management -> 4
+        :access_control -> 5
+        :observability_and_health_checks -> 6
+        :parameters -> 7
+        :policies -> 8
+        :virtual_hosts -> 9
+        _ -> 98
+      end
+    end)
+    |> Enum.map(fn {help_section, section_helps} ->
+      [
+        "\n## " <> section_head(help_section) <> ":\n"
+        | Enum.sort(section_helps)
+          |> Enum.map(fn {name, {description, _}} ->
+            "   #{String.pad_trailing(name, pad_commands_to)}  #{description}"
+          end)
+      ]
+    end)
     |> Enum.concat()
   end
 
@@ -244,34 +242,49 @@ i.e. \"--no-quiet\" or \"--no-table-headers\""]
     case help_section do
       :help ->
         "Help"
+
       :user_management ->
         "Users"
+
       :cluster_management ->
         "Cluster"
+
       :replication ->
         "Replication"
+
       :node_management ->
         "Nodes"
+
       :queues ->
         "Queues"
+
       :observability_and_health_checks ->
         "Monitoring, observability and health checks"
+
       :virtual_hosts ->
-          "Virtual hosts"
+        "Virtual hosts"
+
       :access_control ->
         "Access Control"
+
       :parameters ->
         "Parameters"
+
       :policies ->
         "Policies"
+
       :configuration ->
         "Node configuration"
+
       :feature_flags ->
         "Feature flags"
+
       :other ->
         "Other"
+
       {:plugin, plugin} ->
         plugin_section(plugin) <> " plugin"
+
       custom ->
         snake_case_to_capitalized_string(custom)
     end
@@ -283,16 +296,16 @@ i.e. \"--no-quiet\" or \"--no-table-headers\""]
 
   defp format_known_plugin_name_fragments(value) do
     case value do
-      ["amqp1.0"]    -> "AMQP 1.0"
+      ["amqp1.0"] -> "AMQP 1.0"
       ["amqp1", "0"] -> "AMQP 1.0"
-      ["management"]  -> "Management"
-      ["management", "agent"]  -> "Management"
-      ["mqtt"]       -> "MQTT"
-      ["stomp"]      -> "STOMP"
-      ["web", "mqtt"]  -> "Web MQTT"
+      ["management"] -> "Management"
+      ["management", "agent"] -> "Management"
+      ["mqtt"] -> "MQTT"
+      ["stomp"] -> "STOMP"
+      ["web", "mqtt"] -> "Web MQTT"
       ["web", "stomp"] -> "Web STOMP"
-      [other]        -> snake_case_to_capitalized_string(other)
-      fragments      -> snake_case_to_capitalized_string(Enum.join(fragments, "_"))
+      [other] -> snake_case_to_capitalized_string(other)
+      fragments -> snake_case_to_capitalized_string(Enum.join(fragments, "_"))
     end
   end
 
