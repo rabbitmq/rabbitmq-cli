@@ -118,6 +118,14 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClusterStatusCommand do
       "\n#{bright("Versions")}\n",
     ] ++ version_lines(m[:versions])
 
+    mnevis_leader_section = case m[:mnevis_leader] do
+      nil -> []
+      ml -> [
+        "\n#{bright("Raft Info")}\n",
+        "Mnevis Leader: #{m[:mnevis_leader]}"
+      ]
+    end
+
     alarms_section = [
       "\n#{bright("Alarms")}\n",
     ] ++ case m[:alarms] do
@@ -149,7 +157,8 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClusterStatusCommand do
          end
 
     lines = cluster_name_section ++ disk_nodes_section ++ ram_nodes_section ++ running_nodes_section ++
-            versions_section ++ alarms_section ++ partitions_section ++ listeners_section ++ feature_flags_section
+            versions_section ++ mnevis_leader_section ++ alarms_section ++ partitions_section ++
+            listeners_section ++ feature_flags_section
 
     {:ok, Enum.join(lines, line_separator())}
   end
@@ -196,7 +205,8 @@ defmodule RabbitMQ.CLI.Ctl.Commands.ClusterStatusCommand do
       partitions: Keyword.get(result, :partitions, []) |> Enum.into(%{}),
       listeners: Keyword.get(result, :listeners, []) |> Enum.into(%{}),
       versions: Keyword.get(result, :versions, []) |> Enum.into(%{}),
-      feature_flags: Keyword.get(result, :feature_flags, []) |> Enum.map(fn ff -> Enum.into(ff, %{}) end)
+      feature_flags: Keyword.get(result, :feature_flags, []) |> Enum.map(fn ff -> Enum.into(ff, %{}) end),
+      mnevis_leader: Keyword.get(result, :mnevis_leader),
     }
   end
 
