@@ -23,9 +23,6 @@ defmodule DirectoriesCommandTest do
     RabbitMQ.CLI.Core.Distribution.start()
     node = get_rabbit_hostname()
 
-    {:ok, plugins_file} = :rabbit_misc.rpc_call(node,
-                                                :application, :get_env,
-                                                [:rabbit, :enabled_plugins_file])
     {:ok, plugins_dir} = :rabbit_misc.rpc_call(node,
                                                :application, :get_env,
                                                [:rabbit, :plugins_dir])
@@ -36,7 +33,7 @@ defmodule DirectoriesCommandTest do
     rabbitmq_home = :rabbit_misc.rpc_call(node, :code, :lib_dir, [:rabbit])
 
     {:ok, opts: %{
-        plugins_file: plugins_file,
+        plugins_file: nil,
         plugins_dir: plugins_dir,
         plugins_expand_dir: plugins_expand_dir,
         rabbitmq_home: rabbitmq_home,
@@ -100,12 +97,52 @@ defmodule DirectoriesCommandTest do
     assert @command.validate_execution_environment([], opts) == :ok
   end
 
-
   test "run: when --online is used, lists plugin directories", context do
     opts = Map.merge(context[:opts], %{online: true})
+
+    {:ok, plugins_file} = :rabbit_misc.rpc_call(Map.get(opts, :node),
+                                                :application, :get_env,
+                                                [:rabbit, :enabled_plugins_file])
+
     dirs = %{plugins_dir: to_string(Map.get(opts, :plugins_dir)),
              plugins_expand_dir: to_string(Map.get(opts, :plugins_expand_dir)),
-             enabled_plugins_file: to_string(Map.get(opts, :plugins_file))}
+             enabled_plugins_file: to_string(plugins_file)}
+
+    assert @command.run([], opts) == {:ok, dirs}
+  end
+
+  test "run: when --offline is used, checks for enabled_plugins in the data dir, falling back to the config dir", context do
+    sys_prefix = Path.join([System.tmp_dir(), "DirectoriesCommandTest"])
+
+    System.put_env("SYS_PREFIX", sys_prefix)
+
+    config_dir = Path.join([sys_prefix, "etc", "rabbitmq"])
+    legacy_file = Path.join([config_dir, "enabled_plugins"])
+
+    data_dir = Path.join([sys_prefix, "var", "lib", "rabbitmq"])
+    modern_file = Path.join([data_dir, "enabled_plugins"])
+
+    File.rm(legacy_file)
+    File.rm(modern_file)
+
+    refute File.exists?(legacy_file)
+    refute File.exists?(modern_file)
+
+    opts = Map.merge(context[:opts], %{offline: true})
+
+    dirs = %{plugins_dir: to_string(Map.get(opts, :plugins_dir)),
+             plugins_expand_dir: to_string(Map.get(opts, :plugins_expand_dir)),
+             enabled_plugins_file: modern_file}
+
+    assert @command.run([], opts) == {:ok, dirs}
+
+    :ok = File.mkdir_p(config_dir)
+    :ok = File.touch(legacy_file)
+
+    assert @command.run([], opts) == {:ok, Map.merge(dirs, %{enabled_plugins_file: legacy_file})}
+
+    :ok = File.mkdir_p(data_dir)
+    :ok = File.touch(modern_file)
 
     assert @command.run([], opts) == {:ok, dirs}
   end

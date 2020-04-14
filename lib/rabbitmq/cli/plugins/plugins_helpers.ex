@@ -70,17 +70,44 @@ defmodule RabbitMQ.CLI.Plugins.Helpers do
     end
   end
 
+  @spec enabled_plugins_file(map()) :: {:ok, charlist()} | {:error, any()}
   def enabled_plugins_file(opts) do
     case Config.get_option(:enabled_plugins_file, opts) do
-      nil -> {:error, :no_plugins_file}
-      file -> {:ok, file}
+      nil ->
+        case :os.type do
+          {:unix, _} ->
+            sys_prefix = System.get_env("SYS_PREFIX", "/")
+            config_base_dir = Path.join([sys_prefix, "etc", "rabbitmq"])
+            data_dir = Path.join([sys_prefix, "var", "lib", "rabbitmq"])
+            legacy_location = Path.absname(Path.join([config_base_dir, "enabled_plugins"]))
+            modern_location = Path.absname(Path.join([data_dir, "enabled_plugins"]))
+            case {File.exists?(modern_location), File.exists?(legacy_location)} do
+              {false, true} ->
+                {:ok, legacy_location}
+              _ ->
+                {:ok, modern_location}
+            end
+          {:win32, _} ->
+            rabbitmq_base = case System.fetch_env("RABBITMQ_BASE") do
+                              {:ok, Value} ->
+                                Value
+                              _ ->
+                                app_data = System.get_env("APPDATA")
+                                Path.join([app_data, "RabbitMQ"])
+                            end
+            {:ok, Path.join([rabbitmq_base, "enabled_plugins"])}
+        end
+      file ->
+        {:ok, file}
     end
   end
 
+  @spec enabled_plugins_file(any(), map()) :: {:ok, charlist()} | {:error, any()}
   def enabled_plugins_file(_, opts) do
     enabled_plugins_file(opts)
   end
 
+  @spec set_enabled_plugins([atom()], map()) :: {:ok, Enumerable.t()} | {:error, any()}
   def set_enabled_plugins(plugins, opts) do
     plugin_atoms = :lists.usort(for plugin <- plugins, do: to_atom(plugin))
     require_rabbit_and_plugins(opts)
@@ -89,11 +116,11 @@ defmodule RabbitMQ.CLI.Plugins.Helpers do
   end
 
   @spec update_enabled_plugins(
-          [atom()],
-          :online | :offline | :best_effort,
-          node(),
-          map()
-        ) :: map() | {:error, any()}
+    [atom()],
+    :online | :offline | :best_effort,
+    node(),
+    map()
+  ) :: map() | {:error, any()}
   def update_enabled_plugins(enabled_plugins, mode, node_name, opts) do
     {:ok, plugins_file} = enabled_plugins_file(opts)
 

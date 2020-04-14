@@ -71,8 +71,14 @@ defmodule RabbitMQ.CLI.Plugins.Commands.DirectoriesCommand do
   end
 
   def run([], %{offline: true} = opts) do
-    do_run(fn key ->
-      Config.get_option(key, opts)
+    do_run(fn
+      :enabled_plugins_file ->
+        case PluginHelpers.enabled_plugins_file(opts) do
+          {:ok, plugins_file} -> plugins_file
+          _ -> nil
+        end
+      key ->
+        Config.get_option(key, opts)
     end)
   end
 
