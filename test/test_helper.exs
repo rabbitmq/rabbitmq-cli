@@ -8,7 +8,11 @@ four_hours = 240 * 60 * 1000
 ExUnit.configure(
   exclude: [disabled: true],
   module_load_timeout: four_hours,
-  timeout: four_hours)
+  timeout: four_hours,
+  formatters: case System.get_env("HONEYCOMB_FORMATTER") do
+    "true" -> [HoneycombFormatter, ExUnit.CLIFormatter]
+    _ -> [ExUnit.CLIFormatter]
+  end)
 
 ExUnit.start()
 

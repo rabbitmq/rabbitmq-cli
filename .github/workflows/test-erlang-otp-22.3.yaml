@@ -1,0 +1,88 @@
+# vim:sw=2:et:
+# https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow
+name: "Test - Erlang 22.3"
+on:
+  push:
+  repository_dispatch:
+    types:
+      - new-commit-to-dep-release-branch
+jobs:
+  # vim:sw=2:et:
+  tests:
+    name: tests
+    runs-on: ubuntu-18.04
+    steps:
+      - name: CHECKOUT REPOSITORY
+        uses: actions/checkout@v2
+      # https://github.com/marketplace/actions/setup-elixir
+      - name: CONFIGURE OTP & ELIXIR
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: 22.3
+          # https://github.com/elixir-lang/elixir/releases
+          elixir-version: 1.8.0
+      - name: RUN TESTS
+        run: |
+          base_rmq_ref=master
+          branch_or_tag_name=${GITHUB_REF#refs/*/}
+
+          make \
+            DEPS_DIR=$PWD/.. \
+            current_rmq_ref=$branch_or_tag_name
+
+          git clone \
+            --branch "$base_rmq_ref" \
+            --depth 1 \
+            https://github.com/rabbitmq/rabbitmq-server-release.git \
+            ../rabbitmq_server_release
+          make start-background-broker -C ../rabbitmq_server_release \
+            DEPS_DIR=$PWD/.. \
+            PLUGINS='rabbitmq_federation rabbitmq_stomp' \
+            PROJECT_VERSION=3.9.0 \
+            current_rmq_ref=$branch_or_tag_name
+
+          make tests \
+            HONEYCOMB_FORMATTER=true \
+            DEPS_DIR=$PWD/.. \
+            current_rmq_ref=$branch_or_tag_name
+      - name: HONEYCOMB
+        if: success() || failure()
+        run: |
+          echo "$(ls /tmp/honeycomb | wc -l) events recorded"
+          for f in /tmp/honeycomb/*; do
+            RC=$(curl --silent \
+                -H 'X-Honeycomb-Team: ${{ secrets.HONEYCOMB_TEAM }}' \
+                -d @${f} \
+                -o /dev/null \
+                -w "%{http_code}" \
+                "https://api.honeycomb.io/1/events/rabbitmq-ci")
+            if [ "$RC" != "200" ]; then
+              echo "Honeycomb returned ${RC}"
+              cat ${f}
+              printf "\n\n"
+            fi
+          done
+      - name: ON FAILURE ARCHIVE BROKER LOGS
+        if: failure()
+        run: |
+          ls /tmp/rabbitmq-test-instances/
+
+          make stop-node -C ../rabbitmq_server_release \
+            DEPS_DIR=$PWD/.. \
+            PLUGINS='rabbitmq_federation rabbitmq_stomp' \
+            PROJECT_VERSION=3.9.0 \
+            current_rmq_ref=$branch_or_tag_name
+
+          tar -c -f - /tmp/rabbitmq-test-instances/*/log | \
+            xz > broker-logs.tar.xz
+      #      - name: ON FAILURE ARCHIVE TESTS LOGS
+      #        if: failure()
+      #        run: |
+      #          make ct-logs-archive
+      - name: ON FAILURE UPLOAD TESTS LOGS ARTIFACT
+        # https://github.com/marketplace/actions/upload-artifact
+        uses: actions/upload-artifact@v2-preview
+        if: failure()
+        with:
+          name: broker-logs
+          path: "broker-logs.tar.xz"
