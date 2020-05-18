@@ -41,6 +41,14 @@ jobs:
             PROJECT_VERSION=3.9.0 \
             current_rmq_ref=$branch_or_tag_name
 
+          # due to https://github.com/elixir-lang/elixir/issues/7699 we
+          # "run" the tests, but skip them all, in order to trigger
+          # compilation of all *_test.exs files before we actually run them
+          make tests \
+            MIX_TEST_OPTS="--exclude test" \
+            DEPS_DIR=$PWD/.. \
+            current_rmq_ref=$branch_or_tag_name > /dev/null 2>&1
+
           make tests \
             HONEYCOMB_FORMATTER=true \
             DEPS_DIR=$PWD/.. \
