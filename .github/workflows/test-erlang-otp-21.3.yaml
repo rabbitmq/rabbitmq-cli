@@ -49,6 +49,9 @@ jobs:
             DEPS_DIR=$PWD/.. \
             current_rmq_ref=$branch_or_tag_name > /dev/null 2>&1
 
+          export BASE_RMQ_REF=master
+          export ERLANG_VERSION=21.3
+          export ELIXIR_VERSION=1.8.0
           make tests \
             HONEYCOMB_FORMATTER=true \
             DEPS_DIR=$PWD/.. \

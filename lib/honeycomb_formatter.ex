@@ -4,9 +4,11 @@ defmodule HoneycombFormatter do
   def init(opts) do
     env = System.get_env()
 
+    :application.ensure_all_started(:os_mon)
+
     config = %{
       directory: "/tmp/honeycomb",
-      github_workflow: env["GITHUB_WORKLOW"] || "unknown",
+      github_workflow: env["GITHUB_WORKFLOW"] || "unknown",
       github_run_id: env["GITHUB_RUN_ID"] || "unknown",
       github_repository: env["GITHUB_REPOSITORY"] || "unknown",
       github_sha: env["GITHUB_SHA"] || "unknown",
@@ -14,11 +16,11 @@ defmodule HoneycombFormatter do
       base_rmq_ref: env["BASE_RMQ_REF"] || "unknown",
       erlang_version: env["ERLANG_VERSION"] || "unknown",
       elixir_version: env["ELIXIR_VERSION"] || "unknown",
-      otp_release: "unknown", # = erlang:system_info(otp_release),
-      cpu_topology_json: "\"unknown\"", # = cpu_topology_json(erlang:system_info(cpu_topology)),
-      schedulers: -1, # = erlang:system_info(schedulers),
-      system_architecture: "unknown", # = erlang:system_info(system_architecture),
-      system_memory_data_json: "\"unknown\"", # = json_string_memory(memsup:get_system_memory_data())
+      otp_release: :erlang.system_info(:otp_release),
+      cpu_topology_json: cpu_topology_json(:erlang.system_info(:cpu_topology)),
+      schedulers: :erlang.system_info(:schedulers),
+      system_architecture: :erlang.system_info(:system_architecture),
+      system_memory_data_json: json_string_memory(:memsup.get_system_memory_data()),
       exunit_seed: opts[:seed]
     }
 
@@ -98,5 +100,17 @@ defmodule HoneycombFormatter do
     |> to_string()
     |> (&(Regex.replace(~r/"/, &1, "\\\""))).()
     |> (&(Regex.replace(~r/\\e/, &1, "\\u001b"))).()
+  end
+
+  defp json_string_memory(system_memory_data) when is_list(system_memory_data) do
+    key_pairs = for {k, v} <- system_memory_data, do:
+      "\"#{k}\":#{v}"
+    "{" <> Enum.join(key_pairs, ",") <> "}"
+  end
+
+  defp cpu_topology_json([{:processor, cores}]) when is_list(cores) do
+    core_pairs = for {:core, {kind, index}} <- cores, do:
+      "{\"core\":{\"#{kind}\":#{index}}}"
+    "{\"processor\":[" <> Enum.join(core_pairs, ",") <> "]}"
   end
 end
