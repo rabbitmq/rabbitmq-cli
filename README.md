@@ -1,5 +1,12 @@
 # RabbitMQ CLI Tools
 
+## This was migrated to https://github.com/rabbitmq/rabbitmq-server
+
+This repository has been moved to the main unified RabbitMQ "monorepo", including all open issues. You can find the source under [/deps/rabbitmq_cli](https://github.com/rabbitmq/rabbitmq-server/tree/master/deps/rabbitmq_cli).
+All issues have been transferred.
+
+## Overview
+
 [![Build Status](https://travis-ci.org/rabbitmq/rabbitmq-cli.svg?branch=master)](https://travis-ci.org/rabbitmq/rabbitmq-cli)
 
 This repository contains [RabbitMQ CLI tools](https://rabbitmq.com/cli.html) ([rabbitmqctl](https://www.rabbitmq.com/man/rabbitmqctl.1.man.html) and
